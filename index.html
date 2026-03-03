@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>星纪园/天越 智能收退费系统 (完美版)</title>
+    <title>星纪园/天越 智能收退费系统 (精确校历版)</title>
     <style>
         body { font-family: 'Microsoft YaHei', sans-serif; background-color: #f0f4f8; padding: 20px; color: #333; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
@@ -45,7 +45,7 @@
         <div class="col">
             <label>
                 1. 选择学期参数
-                <a href="https://www.kdocs.cn/l/clKpJx6faLnq" target="_blank" class="official-link">🔗 查阅2026春季学期校历</a>
+                <a href="https://www.kdocs.cn/l/clKpJx6faLnq" target="_blank" class="official-link">🔗 查阅2026春季校历</a>
             </label>
             <select id="semester" onchange="updateSemesterData()"></select>
         </div>
@@ -75,14 +75,13 @@
 
     <div class="section-title" id="timeSectionTitle">二、 时间与天数录入</div>
     
-    <!-- 永久显示的系统日期区 -->
     <div class="row" id="dateGroup">
         <div class="col">
             <label>开学时间 (系统锁定)</label>
             <input type="date" id="startDate" readonly style="background-color: #e9ecef;">
         </div>
         <div class="col" id="endDateCol">
-            <label>本学期结束时间 <span class="auto-calc-badge">系统推算</span></label>
+            <label>本学期结束时间 (系统锁定)</label>
             <input type="date" id="endDate" readonly style="background-color: #e9ecef; color: #c0392b; font-weight: bold;">
         </div>
         <div class="col hidden" id="eventDateCol">
@@ -142,13 +141,13 @@
 </div>
 
 <script>
-    // --- 核心参数库 (已更新小学第二学期为90天) ---
+    // --- 核心参数库 (已写死官方结束日期) ---
     const config = {
-        "primary_s1": { name: "2025-2026 第一学期 (小学110天)", start: "2025-09-01", days: 110, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
-        "primary_s2": { name: "2025-2026 第二学期 (小学90天)", start: "2026-02-26", days: 90, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
-        "middle_s1": { name: "2025-2026 第一学期 (初中110天)", start: "2025-09-01", days: 110, mealRate: 53, mealCap: 5830, acc: 6000, bus: 0, delay: 676 },
-        "middle_s2_g12": { name: "2025-2026 第二学期 (初一/初二 90天)", start: "2026-02-25", days: 90, mealRate: 53, mealCap: 4770, acc: 6000, bus: 0, delay: 560 },
-        "middle_s2_g3": { name: "2025-2026 第二学期 (初三 84天+周日)", start: "2026-02-25", days: 84, mealRate: 53, mealCap: 4452, acc: 6000, bus: 0, delay: 784, sunRate: 18, sunTotal: 12 }
+        "primary_s1": { name: "2025-2026 第一学期 (小学110天)", start: "2025-09-01", end: "2026-01-20", days: 110, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
+        "primary_s2": { name: "2025-2026 第二学期 (小学90天)", start: "2026-02-26", end: "2026-07-03", days: 90, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
+        "middle_s1": { name: "2025-2026 第一学期 (初中110天)", start: "2025-09-01", end: "2026-01-20", days: 110, mealRate: 53, mealCap: 5830, acc: 6000, bus: 0, delay: 676 },
+        "middle_s2_g12": { name: "2025-2026 第二学期 (初一/初二 90天)", start: "2026-02-25", end: "2026-07-04", days: 90, mealRate: 53, mealCap: 4770, acc: 6000, bus: 0, delay: 560 },
+        "middle_s2_g3": { name: "2025-2026 第二学期 (初三 84天+周日)", start: "2026-02-25", end: "2026-07-04", days: 84, mealRate: 53, mealCap: 4452, acc: 6000, bus: 0, delay: 784, sunRate: 18, sunTotal: 12 }
     };
 
     // --- 日历引擎 ---
@@ -165,7 +164,14 @@
         "2025-01-26", "2025-02-08", "2025-04-27", "2025-09-28", "2025-10-11", "2025-12-28",
         "2026-02-14", "2026-02-28", "2026-04-26", "2026-09-27", "2026-10-10"
     ];
-    const specialSundays = ["2026-06-21"]; 
+    
+    // 初三下学期规定的12个补课周日 (精准锁定)
+    const specificSundays = [
+        "2026-03-01", "2026-03-08", "2026-03-15", "2026-03-22", "2026-03-29",
+        "2026-04-12", "2026-04-19", 
+        "2026-05-10", "2026-05-17", "2026-05-24", "2026-05-31",
+        "2026-06-07"
+    ]; 
 
     function formatDate(d) {
         let month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
@@ -197,6 +203,7 @@
         return count;
     }
 
+    // 精确数出区间内包含了几个规定的周日
     function getSundayDays(startStr, endStr) {
         let start = new Date(startStr);
         let end = new Date(endStr);
@@ -206,26 +213,13 @@
         let safety = 0;
         while (current <= end && safety < 300) {
             let dateStr = formatDate(current);
-            if (current.getDay() === 0 && !holidays.includes(dateStr) && !makeUpWorkdays.includes(dateStr) && !specialSundays.includes(dateStr)) {
+            if (specificSundays.includes(dateStr)) {
                 count++;
             }
             current.setDate(current.getDate() + 1);
             safety++;
         }
         return count;
-    }
-
-    function calculateEndDate(startStr, totalDays) {
-        let current = new Date(startStr);
-        if (isNaN(current)) return "";
-        let count = 0;
-        let safety = 0;
-        while (count < totalDays && safety < 300) {
-            if (isSchoolDay(formatDate(current))) count++;
-            if (count < totalDays) current.setDate(current.getDate() + 1);
-            safety++;
-        }
-        return formatDate(current);
     }
 
     // --- 页面交互 ---
@@ -261,7 +255,7 @@
             scenario.add(new Option('🛏️ 校车转住宿', 'bus_to_board'));
         }
         scenario.add(new Option('📝 试读代收费结算', 'trial_fail'));
-        scenario.add(new Option('⛔ 强制退学', 'force_quit'));
+        scenario.add(new Option('⛔ 强制转学', 'force_quit'));
         
         if (!isPrimary && (currentScenario === 'board_to_bus' || currentScenario === 'bus_to_board')) {
             scenario.value = 'enroll';
@@ -290,8 +284,10 @@
     function updateSemesterData() {
         const key = document.getElementById('semester').value;
         currentConfig = config[key];
+        
         document.getElementById('startDate').value = currentConfig.start;
-        document.getElementById('endDate').value = calculateEndDate(currentConfig.start, currentConfig.days);
+        // 直接读取配置库里写死的结束日期
+        document.getElementById('endDate').value = currentConfig.end;
         
         document.getElementById('eventDate').value = currentConfig.start;
         document.getElementById('enrollDate').value = currentConfig.start;
@@ -344,14 +340,12 @@
             document.getElementById('eventDateCol').classList.remove('hidden');
             document.getElementById('eventDateLabel').innerText = "转换生效日期";
             document.getElementById('multiDateGroup').classList.remove('hidden');
-            document.getElementById('enrollDateCol').classList.remove('hidden');
             document.getElementById('boardDateCol').classList.remove('hidden'); 
         }
         else if (scenario === 'bus_to_board') {
             document.getElementById('eventDateCol').classList.remove('hidden');
             document.getElementById('eventDateLabel').innerText = "转换生效日期";
             document.getElementById('multiDateGroup').classList.remove('hidden');
-            document.getElementById('enrollDateCol').classList.remove('hidden');
             document.getElementById('busDateCol').classList.remove('hidden'); 
         }
         else if (scenario === 'trial_fail') {
@@ -431,7 +425,7 @@
         const isPrimary = document.querySelector('input[name="school"]:checked').value === 'primary';
         
         if (scenario === 'force_quit') {
-            document.getElementById('detailsBox').innerHTML = `<div class="warning-box">⚠️ 强制退学情况特殊，请开会沟通后根据会议决议手动核算退费金额。</div>`;
+            document.getElementById('detailsBox').innerHTML = `<div class="warning-box">⚠️ 强制转学情况特殊，请开会沟通后根据会议决议手动核算退费金额。</div>`;
             document.getElementById('totalAmountBox').style.display = 'none';
             return;
         }
@@ -535,7 +529,7 @@
             document.getElementById('totalAmountBox').innerHTML = `应收总计：<span id="totalAmount">¥ ${total.toFixed(2)}</span>`;
         }
 
-        // 2. 退学 / 休学 (退费)
+        // 2. 转学 / 休学 (退费)
         else if (scenario === 'withdraw' || scenario === 'suspend') {
             const enrollDate = new Date(document.getElementById('enrollDate').value);
             const eventDate = new Date(document.getElementById('eventDate').value);
@@ -622,7 +616,6 @@
                 detailsHtml += `<div class="detail-item"><span>校车退费 (${currentConfig.bus} ÷ ${currentConfig.days}天 × ${leaveDays}天):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
             }
             if (currentConfig.delay > 0) {
-                // 请假延时费按月折算逻辑
                 let tDays = currentConfig.days;
                 let tMonths = Math.floor(tDays / 30) + (tDays % 30 > 15 ? 1 : (tDays % 30 > 0 ? 0.5 : 0));
                 let monthlyDelayRate = currentConfig.delay / tMonths;
