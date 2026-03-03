@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>星纪园/天越 智能收退费系统 (完美版)</title>
+    <title>小学/初中 智能收退费系统</title>
     <style>
         body { font-family: 'Microsoft YaHei', sans-serif; background-color: #f0f4f8; padding: 20px; color: #333; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
@@ -33,7 +33,7 @@
 <body>
 
 <div class="container">
-    <h2>🏫 星纪园/天越 智能收退费系统</h2>
+    <h2>🏫 小学/初中 智能收退费系统</h2>
     
     <div class="school-toggle">
         <label><input type="radio" name="school" value="primary" checked onchange="changeSchool()"> 👧 小学 (星纪园)</label>
@@ -45,7 +45,7 @@
         <div class="col">
             <label>
                 1. 选择学期参数
-                <a href="https://jyj.fuzhou.gov.cn/?eqid=c2039e0c000412a0000000046454a768" target="_blank" class="official-link">🔗 查阅教育局官方校历</a>
+                <a href="https://www.kdocs.cn/l/clKpJx6faLnq" target="_blank" class="official-link">🔗 查阅2026春季学期校历</a>
             </label>
             <select id="semester" onchange="updateSemesterData()"></select>
         </div>
@@ -132,7 +132,7 @@
     <button onclick="calculate()">一键生成收退费明细</button>
 
     <div class="result-box" id="resultBox">
-        <div class="result-title">📊 财务核算结果：</div>
+        <div class="result-title">📊 费用核算结果：</div>
         <div id="detailsBox">
             <div style="color:#7f8c8d; text-align:center;">请完善上方信息并点击计算...</div>
         </div>
@@ -447,20 +447,28 @@
         let cap = currentConfig.mealCap;
         let rate = currentConfig.mealRate;
 
-        // 【神级餐费公式】
-        let chargeByAttended = attended * rate;
-        let chargeByAbsent = cap - (absent * rate);
-        
-        let mealCharge = Math.max(chargeByAttended, chargeByAbsent);
-        if (mealCharge > cap) mealCharge = cap; 
-        if (mealCharge < 0) mealCharge = 0;
-
+        // 【餐费逻辑分流：小学用神级公式，初中纯按天数】
+        let mealCharge = 0;
         let mealNote = "";
-        if (mealCharge === cap && chargeByAttended >= cap) {
-            mealNote = `来的天数(${attended})×${rate} ≥ ${cap}，取封顶 ${cap}元`;
-        } else if (chargeByAbsent > chargeByAttended) {
-            mealNote = `${cap} - 没来天数(${absent})×${rate} > 来的天数×${rate}，收费取高者：${mealCharge.toFixed(2)}元`;
+        
+        if (isPrimary) {
+            let chargeByAttended = attended * rate;
+            let chargeByAbsent = cap - (absent * rate);
+            mealCharge = Math.max(chargeByAttended, chargeByAbsent);
+            if (mealCharge > cap) mealCharge = cap; 
+            if (mealCharge < 0) mealCharge = 0;
+
+            if (mealCharge === cap && chargeByAttended >= cap) {
+                mealNote = `来的天数(${attended})×${rate} ≥ ${cap}，取封顶 ${cap}元`;
+            } else if (chargeByAbsent > chargeByAttended) {
+                mealNote = `${cap} - 没来天数(${absent})×${rate} > 来的天数×${rate}，收费取高者：${mealCharge.toFixed(2)}元`;
+            } else {
+                mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
+            }
         } else {
+            // 初中纯按天算
+            mealCharge = attended * rate;
+            if (mealCharge > cap) mealCharge = cap; // 防呆
             mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
         }
 
@@ -469,12 +477,10 @@
         let delayRefund = 0;
         let delayNote = "";
         if (currentConfig.delay > 0) {
-            // 计算学期总月数(按30天/月，余数>15算1月，<=15算半月)
             let tDays = currentConfig.days;
             let tMonths = Math.floor(tDays / 30) + (tDays % 30 > 15 ? 1 : (tDays % 30 > 0 ? 0.5 : 0));
             let monthlyDelayRate = currentConfig.delay / tMonths;
 
-            // 计算已消耗月数
             let cMonths = Math.floor(attended / 30) + (attended % 30 > 15 ? 1 : (attended % 30 > 0 ? 0.5 : 0));
             
             delayCharge = cMonths * monthlyDelayRate;
@@ -565,10 +571,14 @@
             if (mealRefund < 0) mealRefund = 0;
             
             let refundNote = "";
-            if (mealRefund === 0 && (cap - attended * rate) < 0) {
-                refundNote = `已消费超过${cap}元额度，退 0.00元`;
-            } else if (absent * rate < cap - attended * rate) {
-                refundNote = `没来天数(${absent})×${rate} < ${cap} - 来的天数×${rate}，退费取低者：${mealRefund.toFixed(2)}元`;
+            if (isPrimary) {
+                if (mealRefund === 0 && (cap - attended * rate) < 0) {
+                    refundNote = `已消费超过${cap}元额度，退 0.00元`;
+                } else if (absent * rate < cap - attended * rate) {
+                    refundNote = `没来天数(${absent})×${rate} < ${cap} - 来的天数×${rate}，退费取低者：${mealRefund.toFixed(2)}元`;
+                } else {
+                    refundNote = `总额${cap} - 已消费(${attended}天×${rate}) = ${mealRefund.toFixed(2)}元`;
+                }
             } else {
                 refundNote = `总额${cap} - 已消费(${attended}天×${rate}) = ${mealRefund.toFixed(2)}元`;
             }
@@ -612,7 +622,6 @@
                 detailsHtml += `<div class="detail-item"><span>校车退费 (${currentConfig.bus} ÷ ${currentConfig.days}天 × ${leaveDays}天):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
             }
             if (currentConfig.delay > 0) {
-                // 请假延时费按月折算逻辑
                 let tDays = currentConfig.days;
                 let tMonths = Math.floor(tDays / 30) + (tDays % 30 > 15 ? 1 : (tDays % 30 > 0 ? 0.5 : 0));
                 let monthlyDelayRate = currentConfig.delay / tMonths;
