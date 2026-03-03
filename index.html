@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>星纪园/天越 智能收退费系统 (全自动版)</title>
+    <title>星纪园/天越 智能收退费系统 (完美版)</title>
     <style>
         body { font-family: 'Microsoft YaHei', sans-serif; background-color: #f0f4f8; padding: 20px; color: #333; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
@@ -84,7 +84,7 @@
             <label>本学期结束时间 (系统推算)</label>
             <input type="date" id="endDate" readonly style="background-color: #e9ecef;">
         </div>
-        <div class="col" id="eventDateCol">
+        <div class="col hidden" id="eventDateCol">
             <label id="eventDateLabel">变动发生日期</label>
             <input type="date" id="eventDate" onchange="autoCalculateDays()">
         </div>
@@ -119,7 +119,7 @@
             <input type="number" id="leaveDays" placeholder="输入请假天数" min="0">
         </div>
         <div class="col hidden" id="trialDaysCol">
-            <label>试读天数 (纯手工填写)</label>
+            <label>代收费试读天数 (纯手工填写)</label>
             <input type="number" id="trialDays" placeholder="输入试读天数" min="0">
         </div>
         <div class="col hidden" id="sundayDaysCol">
@@ -164,7 +164,6 @@
         "2025-01-26", "2025-02-08", "2025-04-27", "2025-09-28", "2025-10-11", "2025-12-28",
         "2026-02-14", "2026-02-28", "2026-04-26", "2026-09-27", "2026-10-10"
     ];
-    // 特殊周日：按53元正常餐费算，不纳入18元周末餐费
     const specialSundays = ["2026-06-21"]; 
 
     function formatDate(d) {
@@ -182,7 +181,6 @@
         return day !== 0 && day !== 6;
     }
 
-    // 算正常工作日天数
     function getWorkingDays(startStr, endStr) {
         let start = new Date(startStr);
         let end = new Date(endStr);
@@ -198,7 +196,6 @@
         return count;
     }
 
-    // 算区间内包含的【补课周日】天数
     function getSundayDays(startStr, endStr) {
         let start = new Date(startStr);
         let end = new Date(endStr);
@@ -208,7 +205,6 @@
         let safety = 0;
         while (current <= end && safety < 300) {
             let dateStr = formatDate(current);
-            // 是周日 + 不是节假日 + 不是调休上班日 + 不是特殊53元周日
             if (current.getDay() === 0 && !holidays.includes(dateStr) && !makeUpWorkdays.includes(dateStr) && !specialSundays.includes(dateStr)) {
                 count++;
             }
@@ -263,7 +259,7 @@
             scenario.add(new Option('🚌 住宿转校车', 'board_to_bus'));
             scenario.add(new Option('🛏️ 校车转住宿', 'bus_to_board'));
         }
-        scenario.add(new Option('❌ 试读后未录取', 'trial_fail'));
+        scenario.add(new Option('📝 试读代收费结算', 'trial_fail'));
         scenario.add(new Option('⛔ 强制退学', 'force_quit'));
         
         if (!isPrimary && (currentScenario === 'board_to_bus' || currentScenario === 'bus_to_board')) {
@@ -322,14 +318,19 @@
         document.getElementById('trialDaysCol').classList.add('hidden');
         document.getElementById('sundayDaysCol').classList.add('hidden');
 
-        if (scenario === 'enroll' || scenario === 'withdraw' || scenario === 'suspend') {
-            document.getElementById('eventDateCol').classList.remove('hidden');
-            document.getElementById('endDateCol').classList.remove('hidden');
-            document.getElementById('eventDateLabel').innerText = scenario === 'enroll' ? "实际入学日期" : (scenario === 'withdraw' ? "正式退学日期" : "休学日期");
-            
+        if (scenario === 'enroll') {
             document.getElementById('multiDateGroup').classList.remove('hidden');
             document.getElementById('enrollDateCol').classList.remove('hidden');
-            
+            document.getElementById('daysGroup').classList.remove('hidden');
+            document.getElementById('attendedDaysCol').classList.remove('hidden');
+            document.getElementById('absentDaysCol').classList.remove('hidden');
+            autoCalculateDays();
+        } 
+        else if (scenario === 'withdraw' || scenario === 'suspend') {
+            document.getElementById('eventDateCol').classList.remove('hidden');
+            document.getElementById('eventDateLabel').innerText = scenario === 'withdraw' ? "正式退学日期" : "休学日期";
+            document.getElementById('multiDateGroup').classList.remove('hidden');
+            document.getElementById('enrollDateCol').classList.remove('hidden');
             document.getElementById('daysGroup').classList.remove('hidden');
             document.getElementById('attendedDaysCol').classList.remove('hidden');
             document.getElementById('absentDaysCol').classList.remove('hidden');
@@ -343,12 +344,14 @@
             document.getElementById('eventDateCol').classList.remove('hidden');
             document.getElementById('eventDateLabel').innerText = "转换生效日期";
             document.getElementById('multiDateGroup').classList.remove('hidden');
+            document.getElementById('enrollDateCol').classList.remove('hidden');
             document.getElementById('boardDateCol').classList.remove('hidden'); 
         }
         else if (scenario === 'bus_to_board') {
             document.getElementById('eventDateCol').classList.remove('hidden');
             document.getElementById('eventDateLabel').innerText = "转换生效日期";
             document.getElementById('multiDateGroup').classList.remove('hidden');
+            document.getElementById('enrollDateCol').classList.remove('hidden');
             document.getElementById('busDateCol').classList.remove('hidden'); 
         }
         else if (scenario === 'trial_fail') {
@@ -406,7 +409,6 @@
         let absent = currentConfig.days - attended;
         document.getElementById('absentDays').value = absent > 0 ? absent : 0;
 
-        // 自动填入周日天数，且不超过12
         if (key === 'middle_s2_g3' && (scenario === 'enroll' || scenario === 'withdraw' || scenario === 'suspend')) {
             document.getElementById('sundayDays').value = sunCount > 12 ? 12 : sunCount;
         }
@@ -426,6 +428,7 @@
     // --- 财务计算大脑 ---
     function calculate() {
         const scenario = document.getElementById('scenario').value;
+        const isPrimary = document.querySelector('input[name="school"]:checked').value === 'primary';
         
         if (scenario === 'force_quit') {
             document.getElementById('detailsBox').innerHTML = `<div class="warning-box">⚠️ 强制退学情况特殊，请开会沟通后根据会议决议手动核算退费金额。</div>`;
@@ -461,6 +464,28 @@
             mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
         }
 
+        // 【延时服务费按月折算逻辑】
+        let delayCharge = 0;
+        let delayRefund = 0;
+        let delayNote = "";
+        if (currentConfig.delay > 0) {
+            // 计算学期总月数(按30天/月，余数>15算1月，<=15算半月)
+            let tDays = currentConfig.days;
+            let tMonths = Math.floor(tDays / 30) + (tDays % 30 > 15 ? 1 : (tDays % 30 > 0 ? 0.5 : 0));
+            let monthlyDelayRate = currentConfig.delay / tMonths;
+
+            // 计算已消耗月数
+            let cMonths = Math.floor(attended / 30) + (attended % 30 > 15 ? 1 : (attended % 30 > 0 ? 0.5 : 0));
+            
+            delayCharge = cMonths * monthlyDelayRate;
+            if (delayCharge > currentConfig.delay) delayCharge = currentConfig.delay;
+            
+            delayRefund = currentConfig.delay - delayCharge;
+            if (delayRefund < 0) delayRefund = 0;
+            
+            delayNote = `(上学${attended}天折算为 ${cMonths} 个月，总计 ${tMonths} 个月)`;
+        }
+
         let detailsHtml = '';
         let total = 0;
 
@@ -486,12 +511,11 @@
             let tuitionCharge = baseTuition * ratio;
             let accCharge = (service === 'board') ? (currentConfig.acc * ratio) : 0;
             let busCharge = (service === 'bus') ? (currentConfig.bus * ratio) : 0; 
-            let delayCharge = currentConfig.delay * ratio;
 
             if (baseTuition > 0) detailsHtml += `<div class="detail-item"><span>学费 (按${ratioText}收取):</span><span>收 ¥ ${tuitionCharge.toFixed(2)}</span></div>`;
             if (service === 'board') detailsHtml += `<div class="detail-item"><span>住宿费 (按${ratioText}收取):</span><span>收 ¥ ${accCharge.toFixed(2)}</span></div>`;
             if (service === 'bus') detailsHtml += `<div class="detail-item"><span>校车费 (按比例预估):</span><span>收 ¥ ${busCharge.toFixed(2)}</span></div>`;
-            if (currentConfig.delay > 0) detailsHtml += `<div class="detail-item"><span>延时服务费 (按${ratioText}收取):</span><span>收 ¥ ${delayCharge.toFixed(2)}</span></div>`;
+            if (currentConfig.delay > 0) detailsHtml += `<div class="detail-item"><span>延时服务费 ${delayNote}:</span><span>收 ¥ ${delayCharge.toFixed(2)}</span></div>`;
             
             detailsHtml += `<div class="detail-item"><span>日常餐费 (${mealNote}):</span><span>收 ¥ ${mealCharge.toFixed(2)}</span></div>`;
             
@@ -516,7 +540,7 @@
                 if (eventDate.getDate() < enrollDate.getDate()) monthsPassed--;
             }
 
-            let tuitionRefund = 0; let accRefund = 0; let busRefund = 0; let delayRefund = 0;
+            let tuitionRefund = 0; let accRefund = 0; let busRefund = 0;
             
             if (monthsPassed < 1) {
                 tuitionRefund = baseTuition * 0.7;
@@ -534,10 +558,7 @@
             }
 
             if (currentConfig.delay > 0) {
-                let consumedDelay = (currentConfig.delay / currentConfig.days) * attended;
-                delayRefund = currentConfig.delay - consumedDelay;
-                if (delayRefund < 0) delayRefund = 0;
-                detailsHtml += `<div class="detail-item"><span>延时费退费 (按天数折算):</span><span style="color:green;">退 ¥ ${delayRefund.toFixed(2)}</span></div>`;
+                detailsHtml += `<div class="detail-item"><span>延时费退费 ${delayNote}:</span><span style="color:green;">退 ¥ ${delayRefund.toFixed(2)}</span></div>`;
             }
 
             let mealRefund = cap - mealCharge;
@@ -564,9 +585,14 @@
             total = tuitionRefund + accRefund + busRefund + delayRefund + mealRefund + sunRefund;
 
             if (scenario === 'suspend') {
-                detailsHtml += `<div class="detail-item"><span>休学学杂费 (按规定收取):</span><span style="color:red;">扣除 ¥ 1000.00</span></div>`;
-                total -= 1000;
-                document.getElementById('totalAmountBox').innerHTML = `应退总计 (已扣学杂费)：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
+                if (isPrimary) {
+                    detailsHtml += `<div class="detail-item"><span>休学学杂费 (小学扣除):</span><span style="color:red;">扣除 ¥ 1000.00</span></div>`;
+                    total -= 1000;
+                    document.getElementById('totalAmountBox').innerHTML = `应退总计 (已扣学杂费)：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
+                } else {
+                    detailsHtml += `<div class="detail-item"><span>休学学杂费:</span><span style="color:#7f8c8d;">初中不扣除</span></div>`;
+                    document.getElementById('totalAmountBox').innerHTML = `应退总计：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
+                }
             } else {
                 document.getElementById('totalAmountBox').innerHTML = `应退总计：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
             }
@@ -576,7 +602,7 @@
         else if (scenario === 'leave') {
             const leaveDays = parseInt(document.getElementById('leaveDays').value) || 0;
             let mealRefund = leaveDays * currentConfig.mealRate;
-            let busRefund = 0; let delayRefund = 0; let sunRefund = 0;
+            let busRefund = 0; let delayRefundLv = 0; let sunRefund = 0;
             
             detailsHtml += `<div class="detail-item"><span>学费/住宿费:</span><span>请假不退还</span></div>`;
             detailsHtml += `<div class="detail-item"><span>日常餐费退费 (${leaveDays}天 × ${currentConfig.mealRate}元):</span><span style="color:green;">退 ¥ ${mealRefund.toFixed(2)}</span></div>`;
@@ -586,31 +612,39 @@
                 detailsHtml += `<div class="detail-item"><span>校车退费 (${currentConfig.bus} ÷ ${currentConfig.days}天 × ${leaveDays}天):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
             }
             if (currentConfig.delay > 0) {
-                delayRefund = (currentConfig.delay / currentConfig.days) * leaveDays;
-                detailsHtml += `<div class="detail-item"><span>延时费退费 (按天数折算):</span><span style="color:green;">退 ¥ ${delayRefund.toFixed(2)}</span></div>`;
+                // 请假延时费按月折算逻辑
+                let tDays = currentConfig.days;
+                let tMonths = Math.floor(tDays / 30) + (tDays % 30 > 15 ? 1 : (tDays % 30 > 0 ? 0.5 : 0));
+                let monthlyDelayRate = currentConfig.delay / tMonths;
+                
+                let lMonths = Math.floor(leaveDays / 30) + (leaveDays % 30 > 15 ? 1 : (leaveDays % 30 > 0 ? 0.5 : 0));
+                delayRefundLv = lMonths * monthlyDelayRate;
+                
+                detailsHtml += `<div class="detail-item"><span>延时费退费 (请假${leaveDays}天折算为${lMonths}个月):</span><span style="color:green;">退 ¥ ${delayRefundLv.toFixed(2)}</span></div>`;
             }
             if (currentConfig.sunRate && sundayDays > 0) {
                 sunRefund = sundayDays * currentConfig.sunRate;
                 detailsHtml += `<div class="detail-item"><span>初三周日餐费退费 (请假${sundayDays}个周日×18):</span><span style="color:green;">退 ¥ ${sunRefund.toFixed(2)}</span></div>`;
             }
 
-            total = mealRefund + busRefund + delayRefund + sunRefund;
+            total = mealRefund + busRefund + delayRefundLv + sunRefund;
             document.getElementById('totalAmountBox').innerHTML = `应退总计：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
         }
 
-        // 4. 试读未录取
+        // 4. 试读代收费
         else if (scenario === 'trial_fail') {
             const trialDays = parseInt(document.getElementById('trialDays').value) || 0;
-            let mealCharge = trialDays * currentConfig.mealRate;
-            detailsHtml += `<div class="detail-item"><span>学费:</span><span>不收取 (试读未录取)</span></div>`;
-            detailsHtml += `<div class="detail-item"><span>日常餐费收取 (${trialDays}天 × ${currentConfig.mealRate}元):</span><span>收 ¥ ${mealCharge.toFixed(2)}</span></div>`;
+            let mealCharge = trialDays * 60; // 300 / 5 = 60/天
             
-            if (service === 'board') {
-                detailsHtml += `<div class="detail-item"><span>住宿费 (试读代收标准):</span><span>收 ¥ 400.00</span></div>`;
-                total += 400;
-            } else if (service === 'bus') {
-                detailsHtml += `<div class="detail-item"><span>校车费 (试读代收标准):</span><span>收 ¥ 400.00</span></div>`;
-                total += 400;
+            detailsHtml += `<div class="warning-box">💡 政策提示：若试读未录取，不收取任何费用(全额为0)。此计算仅适用于【录取后但未立即入读(超3个工作日)】的试读期间代收费结算。</div>`;
+            detailsHtml += `<div class="detail-item"><span>学费:</span><span>不收取 ¥ 0.00</span></div>`;
+            detailsHtml += `<div class="detail-item"><span>住宿费:</span><span>不收取 ¥ 0.00</span></div>`;
+            detailsHtml += `<div class="detail-item"><span>试读餐费 (${trialDays}天 × 60元/天):</span><span>收 ¥ ${mealCharge.toFixed(2)}</span></div>`;
+            
+            let busCharge = 0;
+            if (service === 'bus') {
+                busCharge = trialDays * 80; // 400 / 5 = 80/天
+                detailsHtml += `<div class="detail-item"><span>试读校车费 (${trialDays}天 × 80元/天):</span><span>收 ¥ ${busCharge.toFixed(2)}</span></div>`;
             }
             
             let sunCharge = 0;
@@ -619,8 +653,8 @@
                 detailsHtml += `<div class="detail-item"><span>初三周日餐费 (${sundayDays}天×18元):</span><span>收 ¥ ${sunCharge.toFixed(2)}</span></div>`;
             }
 
-            total += mealCharge + sunCharge;
-            document.getElementById('totalAmountBox').innerHTML = `应收总计：<span id="totalAmount">¥ ${total.toFixed(2)}</span>`;
+            total = mealCharge + busCharge + sunCharge;
+            document.getElementById('totalAmountBox').innerHTML = `应收代收费总计：<span id="totalAmount">¥ ${total.toFixed(2)}</span>`;
         }
 
         // 5. 住宿转校车
