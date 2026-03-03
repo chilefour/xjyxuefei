@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>小学/初中 智能收退费系统</title>
+    <title>星纪园/天越 智能收退费系统 (完美版)</title>
     <style>
         body { font-family: 'Microsoft YaHei', sans-serif; background-color: #f0f4f8; padding: 20px; color: #333; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
@@ -75,14 +75,15 @@
 
     <div class="section-title" id="timeSectionTitle">二、 时间与天数录入</div>
     
+    <!-- 永久显示的系统日期区 -->
     <div class="row" id="dateGroup">
         <div class="col">
             <label>开学时间 (系统锁定)</label>
             <input type="date" id="startDate" readonly style="background-color: #e9ecef;">
         </div>
-        <div class="col hidden" id="endDateCol">
-            <label>本学期结束时间 (系统推算)</label>
-            <input type="date" id="endDate" readonly style="background-color: #e9ecef;">
+        <div class="col" id="endDateCol">
+            <label>本学期结束时间 <span class="auto-calc-badge">系统推算</span></label>
+            <input type="date" id="endDate" readonly style="background-color: #e9ecef; color: #c0392b; font-weight: bold;">
         </div>
         <div class="col hidden" id="eventDateCol">
             <label id="eventDateLabel">变动发生日期</label>
@@ -141,10 +142,10 @@
 </div>
 
 <script>
-    // --- 核心参数库 ---
+    // --- 核心参数库 (已更新小学第二学期为90天) ---
     const config = {
         "primary_s1": { name: "2025-2026 第一学期 (小学110天)", start: "2025-09-01", days: 110, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
-        "primary_s2": { name: "2025-2026 第二学期 (小学89天)", start: "2026-02-26", days: 89, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
+        "primary_s2": { name: "2025-2026 第二学期 (小学90天)", start: "2026-02-26", days: 90, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
         "middle_s1": { name: "2025-2026 第一学期 (初中110天)", start: "2025-09-01", days: 110, mealRate: 53, mealCap: 5830, acc: 6000, bus: 0, delay: 676 },
         "middle_s2_g12": { name: "2025-2026 第二学期 (初一/初二 90天)", start: "2026-02-25", days: 90, mealRate: 53, mealCap: 4770, acc: 6000, bus: 0, delay: 560 },
         "middle_s2_g3": { name: "2025-2026 第二学期 (初三 84天+周日)", start: "2026-02-25", days: 84, mealRate: 53, mealCap: 4452, acc: 6000, bus: 0, delay: 784, sunRate: 18, sunTotal: 12 }
@@ -254,7 +255,7 @@
         scenario.add(new Option('✅ 入学 (新生/中途)', 'enroll'));
         scenario.add(new Option('⏸️ 请假 (直接填天数)', 'leave'));
         scenario.add(new Option('⏸️ 休学', 'suspend'));
-        scenario.add(new Option('❌ 中途退学', 'withdraw'));
+        scenario.add(new Option('❌ 中途转学', 'withdraw'));
         if (isPrimary) {
             scenario.add(new Option('🚌 住宿转校车', 'board_to_bus'));
             scenario.add(new Option('🛏️ 校车转住宿', 'bus_to_board'));
@@ -305,7 +306,6 @@
         const key = document.getElementById('semester').value;
         
         document.getElementById('eventDateCol').classList.add('hidden');
-        document.getElementById('endDateCol').classList.add('hidden');
         document.getElementById('multiDateGroup').classList.add('hidden');
         document.getElementById('enrollDateCol').classList.add('hidden');
         document.getElementById('boardDateCol').classList.add('hidden');
@@ -328,7 +328,7 @@
         } 
         else if (scenario === 'withdraw' || scenario === 'suspend') {
             document.getElementById('eventDateCol').classList.remove('hidden');
-            document.getElementById('eventDateLabel').innerText = scenario === 'withdraw' ? "正式退学日期" : "休学日期";
+            document.getElementById('eventDateLabel').innerText = scenario === 'withdraw' ? "正式转学日期" : "休学日期";
             document.getElementById('multiDateGroup').classList.remove('hidden');
             document.getElementById('enrollDateCol').classList.remove('hidden');
             document.getElementById('daysGroup').classList.remove('hidden');
@@ -622,6 +622,7 @@
                 detailsHtml += `<div class="detail-item"><span>校车退费 (${currentConfig.bus} ÷ ${currentConfig.days}天 × ${leaveDays}天):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
             }
             if (currentConfig.delay > 0) {
+                // 请假延时费按月折算逻辑
                 let tDays = currentConfig.days;
                 let tMonths = Math.floor(tDays / 30) + (tDays % 30 > 15 ? 1 : (tDays % 30 > 0 ? 0.5 : 0));
                 let monthlyDelayRate = currentConfig.delay / tMonths;
