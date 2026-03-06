@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>星纪园/天越 智能收退费系统 (精确校历版)</title>
+    <title>星纪园/天越 智能收退费系统</title>
     <style>
         body { font-family: 'Microsoft YaHei', sans-serif; background-color: #f0f4f8; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .container { max-width: 960px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
         h2 { text-align: center; color: #1a5276; border-bottom: 2px solid #e1e8ed; padding-bottom: 15px; }
         .section-title { font-size: 16px; color: #2980b9; margin-top: 20px; margin-bottom: 10px; border-left: 4px solid #2980b9; padding-left: 10px; }
         .row { display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
@@ -16,12 +16,13 @@
         .tip { font-size: 12px; color: #e67e22; margin-top: 4px; display: block; line-height: 1.4; }
         .result-box { margin-top: 30px; padding: 25px; background-color: #ebf5fb; border-left: 6px solid #2980b9; border-radius: 8px; }
         .result-title { font-size: 18px; font-weight: bold; color: #21618c; margin-bottom: 15px; }
-        .detail-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #d6eaf8; }
+        .detail-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #d6eaf8; flex-wrap: wrap; }
+        .detail-item .tip { width: 100%; }
         .amount { font-size: 28px; color: #c0392b; font-weight: bold; margin-top: 15px; text-align: right; border-top: 2px solid #d6eaf8; padding-top: 15px; }
         button { width: 100%; padding: 12px; background-color: #2980b9; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: background 0.3s; }
         button:hover { background-color: #1f618d; }
         .hidden { display: none !important; }
-        .warning-box { background-color: #fdedec; border-left: 5px solid #e74c3c; padding: 15px; margin-top: 20px; border-radius: 5px; color: #c0392b; font-weight: bold; }
+        .warning-box { background-color: #fdedec; border-left: 5px solid #e74c3c; padding: 15px; margin-top: 10px; margin-bottom: 10px; border-radius: 5px; color: #c0392b; font-weight: bold; }
         .school-toggle { display: flex; justify-content: center; margin-bottom: 20px; background: #e9ecef; padding: 10px; border-radius: 8px; }
         .school-toggle label { margin: 0 15px; font-size: 18px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .school-toggle input[type="radio"] { width: 20px; height: 20px; cursor: pointer; }
@@ -31,22 +32,16 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <h2>🏫 小学/初中 智能收退费系统</h2>
-    
     <div class="school-toggle">
         <label><input type="radio" name="school" value="primary" checked onchange="changeSchool()"> 👧 小学 (星纪园)</label>
         <label><input type="radio" name="school" value="middle" onchange="changeSchool()"> 👦 初中 (天越)</label>
     </div>
-
     <div class="section-title">一、基础信息</div>
     <div class="row">
         <div class="col">
-            <label>
-                1. 选择学期参数
-                <a href="https://www.kdocs.cn/l/clKpJx6faLnq" target="_blank" class="official-link">🔗 查阅2026春季校历</a>
-            </label>
+            <label>1. 选择学期参数 <a href="https://www.kdocs.cn/l/clKpJx6faLnq" target="_blank" class="official-link">🔗 查阅2026春季校历</a></label>
             <select id="semester" onchange="updateSemesterData()"></select>
         </div>
         <div class="col">
@@ -54,7 +49,6 @@
             <select id="scenario" onchange="toggleFields()"></select>
         </div>
     </div>
-
     <div class="row">
         <div class="col">
             <label>3. 学生类别 (决定学费)</label>
@@ -72,28 +66,27 @@
             <select id="serviceType"></select>
         </div>
     </div>
-
-    <div class="section-title" id="timeSectionTitle">二、时间与天数录入</div>
-    
+    <div class="section-title">二、时间与天数录入</div>
     <div class="row" id="dateGroup">
         <div class="col">
             <label>开学时间 (系统锁定)</label>
             <input type="date" id="startDate" readonly style="background-color: #e9ecef;">
         </div>
-        <div class="col" id="endDateCol">
+        <div class="col">
             <label>本学期结束时间 (系统锁定)</label>
             <input type="date" id="endDate" readonly style="background-color: #e9ecef; color: #c0392b; font-weight: bold;">
         </div>
         <div class="col hidden" id="eventDateCol">
             <label id="eventDateLabel">变动发生日期</label>
             <input type="date" id="eventDate" onchange="autoCalculateDays()">
+            <span class="tip" id="eventDateTip"></span>
         </div>
     </div>
-
     <div class="row hidden" id="multiDateGroup">
         <div class="col hidden" id="enrollDateCol">
             <label>实际入学时间</label>
             <input type="date" id="enrollDate" onchange="autoCalculateDays()">
+            <span class="tip">学生第一天到校上课的日期</span>
         </div>
         <div class="col hidden" id="boardDateCol">
             <label>第一次入住时间</label>
@@ -104,15 +97,14 @@
             <input type="date" id="busDate">
         </div>
     </div>
-
     <div class="row hidden" id="daysGroup">
         <div class="col hidden" id="attendedDaysCol">
             <label>【有来的天数】(已上学) <span class="auto-calc-badge">自动计算</span></label>
-            <input type="number" id="attendedDays" placeholder="输入天数" min="0" onchange="syncAbsentDays()">
+            <input type="number" id="attendedDays" placeholder="天数" min="0" onchange="syncAbsentDays()">
         </div>
         <div class="col hidden" id="absentDaysCol">
             <label>【没有来的天数】(未上学) <span class="auto-calc-badge">自动计算</span></label>
-            <input type="number" id="absentDays" placeholder="输入天数" min="0" onchange="syncAttendedDays()">
+            <input type="number" id="absentDays" placeholder="天数" min="0" onchange="syncAttendedDays()">
         </div>
         <div class="col hidden" id="leaveDaysCol">
             <label>请假天数 (纯手工填写)</label>
@@ -124,717 +116,724 @@
         </div>
         <div class="col hidden" id="sundayDaysCol">
             <label id="sundayDaysLabel">涉及周日天数</label>
-            <input type="number" id="sundayDays" placeholder="输入周日天数" min="0">
+            <input type="number" id="sundayDays" placeholder="周日天数" min="0">
             <span class="tip" id="sundayTip">用于核算初三周日加餐(18元/天)</span>
         </div>
     </div>
-
     <button onclick="calculate()">一键生成收退费明细</button>
-
     <div class="result-box" id="resultBox">
         <div class="result-title">📊 费用核算结果：</div>
-        <div id="detailsBox">
-            <div style="color:#7f8c8d; text-align:center;">请完善上方信息并点击计算...</div>
-        </div>
+        <div id="detailsBox"><div style="color:#7f8c8d; text-align:center;">请完善上方信息并点击计算...</div></div>
         <div class="amount" id="totalAmountBox">合计金额：<span id="totalAmount">¥ 0.00</span></div>
     </div>
-</div>
+</div><script>
+var config = {
+    "primary_s1": { name: "2025-2026 第一学期 (小学105天)", start: "2025-09-01", end: "2026-01-30", days: 105, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
+    "primary_s2": { name: "2025-2026 第二学期 (小学89天)", start: "2026-02-26", end: "2026-07-03", days: 89, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
+    "middle_s1": { name: "2025-2026 第一学期 (初中105天)", start: "2025-09-01", end: "2026-01-30", days: 105, mealRate: 53, mealCap: 5830, acc: 6000, bus: 0, delay: 676 },
+    "middle_s2_g12": { name: "2025-2026 第二学期 (初一/初二 90天)", start: "2026-02-25", end: "2026-07-03", days: 90, mealRate: 53, mealCap: 4770, acc: 6000, bus: 0, delay: 560 },
+    "middle_s2_g3": { name: "2025-2026 第二学期 (初三 84天+周日)", start: "2026-02-25", end: "2026-06-25", days: 84, mealRate: 53, mealCap: 4452, acc: 6000, bus: 0, delay: 784, sunRate: 18, sunTotal: 12 }
+};
 
-<script>
-    // --- 核心参数库 ---
-    const config = {
-        "primary_s1": { name: "2025-2026 第一学期 (小学105天)", start: "2025-09-01", end: "2026-01-30", days: 105, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
-        "primary_s2": { name: "2025-2026 第二学期 (小学89天)", start: "2026-02-26", end: "2026-07-03", days: 89, mealRate: 47, mealCap: 4400, acc: 6000, bus: 4000, delay: 0 },
-        "middle_s1": { name: "2025-2026 第一学期 (初中105天)", start: "2025-09-01", end: "2026-01-30", days: 105, mealRate: 53, mealCap: 5830, acc: 6000, bus: 0, delay: 676 },
-        "middle_s2_g12": { name: "2025-2026 第二学期 (初一/初二 90天)", start: "2026-02-25", end: "2026-07-03", days: 90, mealRate: 53, mealCap: 4770, acc: 6000, bus: 0, delay: 560 },
-        "middle_s2_g3": { name: "2025-2026 第二学期 (初三 84天+周日)", start: "2026-02-25", end: "2026-06-25", days: 84, mealRate: 53, mealCap: 4452, acc: 6000, bus: 0, delay: 784, sunRate: 18, sunTotal: 12 }
-    };
+var holidays = [
+    "2025-01-01","2025-01-28","2025-01-29","2025-01-30","2025-01-31","2025-02-01","2025-02-02","2025-02-03","2025-02-04",
+    "2025-04-04","2025-04-05","2025-04-06","2025-05-01","2025-05-02","2025-05-03","2025-05-04","2025-05-05",
+    "2025-05-31","2025-06-01","2025-06-02",
+    "2025-10-01","2025-10-02","2025-10-03","2025-10-04","2025-10-05","2025-10-06","2025-10-07","2025-10-08",
+    "2026-01-01","2026-01-02","2026-01-03",
+    "2026-02-15","2026-02-16","2026-02-17","2026-02-18","2026-02-19","2026-02-20","2026-02-21","2026-02-22","2026-02-23",
+    "2026-04-04","2026-04-05","2026-04-06",
+    "2026-05-01","2026-05-02","2026-05-03","2026-05-04","2026-05-05",
+    "2026-06-19","2026-06-20","2026-06-21",
+    "2026-09-25","2026-09-26","2026-09-27",
+    "2026-10-01","2026-10-02","2026-10-03","2026-10-04","2026-10-05","2026-10-06","2026-10-07","2026-10-08"
+];
+var makeUpWorkdays = [
+    "2025-01-26","2025-02-08","2025-04-27","2025-09-28","2025-10-11","2025-12-28",
+    "2026-02-14","2026-02-28","2026-04-26","2026-09-27","2026-10-10"
+];
+var specificSundays = [
+    "2026-03-01","2026-03-08","2026-03-15","2026-03-22","2026-03-29",
+    "2026-04-12","2026-04-19",
+    "2026-05-10","2026-05-17","2026-05-24","2026-05-31",
+    "2026-06-07"
+];
 
-    // --- 日历引擎 ---
-    const holidays = [
-        "2025-01-01", "2025-01-28", "2025-01-29", "2025-01-30", "2025-01-31", "2025-02-01", "2025-02-02", "2025-02-03", "2025-02-04", 
-        "2025-04-04", "2025-04-05", "2025-04-06", "2025-05-01", "2025-05-02", "2025-05-03", "2025-05-04", "2025-05-05", "2025-05-31", 
-        "2025-06-01", "2025-06-02", "2025-10-01", "2025-10-02", "2025-10-03", "2025-10-04", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08",
-        "2026-01-01", "2026-01-02", "2026-01-03", "2026-02-15", "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", 
-        "2026-02-21", "2026-02-22", "2026-02-23", "2026-04-04", "2026-04-05", "2026-04-06", "2026-05-01", "2026-05-02", "2026-05-03", 
-        "2026-05-04", "2026-05-05", "2026-06-19", "2026-06-20", "2026-06-21", "2026-09-25", "2026-09-26", "2026-09-27", "2026-10-01", 
-        "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08"
-    ];
-    const makeUpWorkdays = [
-        "2025-01-26", "2025-02-08", "2025-04-27", "2025-09-28", "2025-10-11", "2025-12-28",
-        "2026-02-14", "2026-02-28", "2026-04-26", "2026-09-27", "2026-10-10"
-    ];
-    
-    const specificSundays = [
-        "2026-03-01", "2026-03-08", "2026-03-15", "2026-03-22", "2026-03-29",
-        "2026-04-12", "2026-04-19", 
-        "2026-05-10", "2026-05-17", "2026-05-24", "2026-05-31",
-        "2026-06-07"
-    ]; 
-
-    function formatDate(d) {
-        let month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
-        if (month.length < 2) month = '0' + month;
-        if (day.length < 2) day = '0' + day;
-        return [year, month, day].join('-');
+function formatDate(d) {    var m = '' + (d.getMonth() + 1), dy = '' + d.getDate(), y = d.getFullYear();
+    if (m.length < 2) m = '0' + m;
+    if (dy.length < 2) dy = '0' + dy;
+    return [y, m, dy].join('-');
+}
+function parseDate(str) {
+    var parts = str.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+}
+function isSchoolDay(dateStr) {
+    if (makeUpWorkdays.includes(dateStr)) return true;
+    if (holidays.includes(dateStr)) return false;
+    var d = new Date(dateStr);
+    var day = d.getDay();
+    return day !== 0 && day !== 6;
+}
+function getWorkingDays(startStr, endStr) {
+    var start = parseDate(startStr), end = parseDate(endStr);
+    if (isNaN(start) || isNaN(end) || start > end) return 0;
+    var count = 0, cur = new Date(start);
+    for (var i = 0; i < 300 && cur <= end; i++) {
+        if (isSchoolDay(formatDate(cur))) count++;
+        cur.setDate(cur.getDate() + 1);
     }
-
-    function isSchoolDay(dateStr) {
-        if (makeUpWorkdays.includes(dateStr)) return true;
-        if (holidays.includes(dateStr)) return false;
-        const d = new Date(dateStr);
-        const day = d.getDay();
-        return day !== 0 && day !== 6;
+    return count;
+}
+function getSundayDays(startStr, endStr) {
+    var start = parseDate(startStr), end = parseDate(endStr);
+    if (isNaN(start) || isNaN(end) || start > end) return 0;
+    var count = 0, cur = new Date(start);
+    for (var i = 0; i < 300 && cur <= end; i++) {
+        if (specificSundays.includes(formatDate(cur))) count++;
+        cur.setDate(cur.getDate() + 1);
     }
+    return count;
+}
 
-    function getWorkingDays(startStr, endStr) {
-        let start = new Date(startStr);
-        let end = new Date(endStr);
-        if (isNaN(start) || isNaN(end) || start > end) return 0;
-        let count = 0;
-        let current = new Date(start);
-        let safety = 0; 
-        while (current <= end && safety < 300) {
-            if (isSchoolDay(formatDate(current))) count++;
-            current.setDate(current.getDate() + 1);
-            safety++;
-        }
-        return count;
-    }
-
-    function getSundayDays(startStr, endStr) {
-        let start = new Date(startStr);
-        let end = new Date(endStr);
-        if (isNaN(start) || isNaN(end) || start > end) return 0;
-        let count = 0;
-        let current = new Date(start);
-        let safety = 0;
-        while (current <= end && safety < 300) {
-            let dateStr = formatDate(current);
-            if (specificSundays.includes(dateStr)) {
-                count++;
-            }
-            current.setDate(current.getDate() + 1);
-            safety++;
-        }
-        return count;
-    }
-
-    function getNaturalMonths(startStr, endStr, anchorStr) {
-        let start = new Date(startStr);
-        let end = new Date(endStr);
-        let anchor = new Date(anchorStr);
-        if (isNaN(start) || isNaN(end) || isNaN(anchor) || start > end) return 0;
-
-        let totalMonths = 0;
-        let currentCycleStart = new Date(anchor);
-
-        for (let i = 0; i < 24; i++) { 
-            let nextCycleStart = new Date(anchor.getFullYear(), anchor.getMonth() + i + 1, anchor.getDate());
-            let currentCycleEnd = new Date(nextCycleStart);
-            currentCycleEnd.setDate(currentCycleEnd.getDate() - 1);
-
-            if (currentCycleEnd < start) {
-                currentCycleStart = nextCycleStart;
-                continue;
-            }
-
-            if (currentCycleStart > end) {
-                break;
-            }
-
-            let overlapStart = start > currentCycleStart ? start : currentCycleStart;
-            let overlapEnd = end < currentCycleEnd ? end : currentCycleEnd;
-
-            let overlapDays = Math.floor((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
-
-            if (overlapDays > 15) {
-                totalMonths += 1;
-            } else if (overlapDays > 0) {
-                totalMonths += 0.5;
-            }
-
-            currentCycleStart = nextCycleStart;
-        }
-
-        return totalMonths;
-    }
-
-    // --- 页面交互 ---
-    let currentConfig = {};
-
-    window.onload = function() {
-        changeSchool();
-    };
-
-    function changeSchool() {
-        const isPrimary = document.querySelector('input[name="school"]:checked').value === 'primary';
-        
-        const semSelect = document.getElementById('semester');
-        semSelect.innerHTML = '';
-        if (isPrimary) {
-            semSelect.add(new Option(config.primary_s1.name, 'primary_s1'));
-            semSelect.add(new Option(config.primary_s2.name, 'primary_s2'));
+// ==================== 自然月计算引擎 ====================
+function getAnchorCycleStart(anchor, i) {
+    return new Date(anchor.getFullYear(), anchor.getMonth() + i, anchor.getDate());
+}
+function getAnchorCycleEnd(anchor, i) {
+    var next = getAnchorCycleStart(anchor, i + 1);
+    next.setDate(next.getDate() - 1);
+    return next;
+}
+function calcNaturalMonths(startStr, endStr, anchorStr, mode) {
+    var start = parseDate(startStr), end = parseDate(endStr), anchor = parseDate(anchorStr);
+    if (isNaN(start) || isNaN(end) || isNaN(anchor) || start > end) return 0;
+    var totalMonths = 0;
+    for (var i = 0; i < 24; i++) {
+        var cycleStart = getAnchorCycleStart(anchor, i);
+        var cycleEnd = getAnchorCycleEnd(anchor, i);
+        if (cycleEnd < start) continue;
+        if (cycleStart > end) break;
+        var overlapStart = start > cycleStart ? start : cycleStart;
+        var overlapEnd = end < cycleEnd ? end : cycleEnd;
+        var overlapDays = Math.floor((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+        if (overlapDays <= 0) continue;
+        var cycleDays = Math.floor((cycleEnd - cycleStart) / (1000 * 60 * 60 * 24)) + 1;
+        var halfCycle = Math.ceil(cycleDays / 2);
+        if (mode === 'charge') {
+            totalMonths += (overlapDays >= halfCycle) ? 1 : 0.5;
         } else {
-            semSelect.add(new Option(config.middle_s1.name, 'middle_s1'));
-            semSelect.add(new Option(config.middle_s2_g12.name, 'middle_s2_g12'));
-            semSelect.add(new Option(config.middle_s2_g3.name, 'middle_s2_g3'));
+            totalMonths += (overlapDays > halfCycle) ? 1 : 0.5;
         }
+    }
+    return totalMonths;
+}
+function calcTotalNaturalMonths(anchorStr, endStr) {
+    return calcNaturalMonths(anchorStr, endStr, anchorStr, 'charge');
+}
+function getElapsedNaturalMonths(anchorStr, dateStr) {
+    var anchor = parseDate(anchorStr), d = parseDate(dateStr);
+    if (isNaN(anchor) || isNaN(d) || d <= anchor) return 0;
+    for (var i = 0; i < 24; i++) {
+        var cycleStart = getAnchorCycleStart(anchor, i);
+        var cycleEnd = getAnchorCycleEnd(anchor, i);
+        if (d >= cycleStart && d <= cycleEnd) return i;
+    }
+    return 12;
+}
+function isOverOneMonth(enrollStr, eventStr) {
+    var enroll = parseDate(enrollStr), ev = parseDate(eventStr);
+    if (isNaN(enroll) || isNaN(ev)) return false;
+    var oneMonthLater = getAnchorCycleStart(enroll, 1);
+    return ev >= oneMonthLater;
+}
+function getTuitionRatio(startStr, enrollStr) {
+    if (parseDate(enrollStr) <= parseDate(startStr)) return { ratio: 1, text: "100% (学期初入学)" };
+    var elapsed = getElapsedNaturalMonths(startStr, enrollStr);
+    if (elapsed < 1) return { ratio: 0.95, text: "95% (开学不满1个月)" };
+    if (elapsed < 2) return { ratio: 0.80, text: "80% (开学满1月不满2月)" };
+    if (elapsed < 3) return { ratio: 0.60, text: "60% (开学满2月不满3月)" };
+    return { ratio: 0.40, text: "40% (开学满3个月及以上)" };
+}
 
-        const scenario = document.getElementById('scenario');
-        const currentScenario = scenario.value;
-        scenario.innerHTML = '';
-        scenario.add(new Option('✅ 入学 (新生/中途)', 'enroll'));
-        scenario.add(new Option('⏸️ 请假 (直填天数)', 'leave'));
-        scenario.add(new Option('⏸️ 休学', 'suspend'));
-        scenario.add(new Option('⏹ 中途转学', 'withdraw'));
-        if (isPrimary) {
-            scenario.add(new Option('🚌 住宿转校车', 'board_to_bus'));
-            scenario.add(new Option('🛏️ 校车转住宿', 'bus_to_board'));
-        }
-        scenario.add(new Option('📉 试读代收费结算', 'trial_fail'));
-        scenario.add(new Option('⛔ 强制转学', 'force_quit'));
-        
-        if (!isPrimary && (currentScenario === 'board_to_bus' || currentScenario === 'bus_to_board')) {
-            scenario.value = 'enroll';
-        } else if (Array.from(scenario.options).some(opt => opt.value === currentScenario)) {
-            scenario.value = currentScenario;
-        }
+// ==================== 餐费计算 ====================
+function calcMealCharge(attended, absent, rate, cap) {
+    var A = attended * rate;
+    var B = cap - absent * rate;
+    var charge = Math.max(A, B);
+    if (charge > cap) charge = cap;
+    if (charge < 0) charge = 0;
+    var note = "";
+    if (A >= B) {
+        note = "有来天数(" + attended + ")×" + rate + " = " + A.toFixed(2) + " ≥ 总额" + cap + " - 没来天数(" + absent + ")×" + rate + " = " + B.toFixed(2) + "，收费取高者：" + charge.toFixed(2) + "元";
+    } else {
+        note = "总额" + cap + " - 没来天数(" + absent + ")×" + rate + " = " + B.toFixed(2) + " > 有来天数(" + attended + ")×" + rate + " = " + A.toFixed(2) + "，收费取高者：" + charge.toFixed(2) + "元";
+    }
+    return { charge: charge, note: note };
+}
+function calcMealRefund(attended, absent, rate, paidMeal) {
+    var A = absent * rate;
+    var C = paidMeal - attended * rate;
+    if (C < 0) C = 0;
+    var refund = Math.min(A, C);
+    if (refund < 0) refund = 0;
+    var note = "";
+    if (A <= C) {
+        note = "没来天数(" + absent + ")×" + rate + " = " + A.toFixed(2) + " ≤ 实收(" + paidMeal.toFixed(2) + ") - 有来天数(" + attended + ")×" + rate + " = " + C.toFixed(2) + "，退费取低者：" + refund.toFixed(2) + "元";
+    } else {
+        note = "实收(" + paidMeal.toFixed(2) + ") - 有来天数(" + attended + ")×" + rate + " = " + C.toFixed(2) + " < 没来天数(" + absent + ")×" + rate + " = " + A.toFixed(2) + "，退费取低者：" + refund.toFixed(2) + "元";
+    }
+    return { refund: refund, note: note };
+}
 
-        const service = document.getElementById('serviceType');
-        const currentService = service.value;
-        service.innerHTML = '';
-        service.add(new Option('寄宿 (含住宿费)', 'board'));
-        service.add(new Option('走读 (无住宿/无校车)', 'day'));
-        if (isPrimary) {
-            service.add(new Option('校车 (含校车费)', 'bus'));
-        }
-        
-        if (!isPrimary && currentService === 'bus') {
-            service.value = 'day';
-        } else if (Array.from(service.options).some(opt => opt.value === currentService)) {
-            service.value = currentService;
-        }
+// ==================== 延时费计算 ====================
+function calcDelayCharge(enrollStr, endStr, anchorStr, totalDelay) {
+    var tMonths = calcTotalNaturalMonths(anchorStr, endStr);
+    if (tMonths <= 0) tMonths = 5;
+    var monthRate = totalDelay / tMonths;
+    var participateMonths = calcNaturalMonths(enrollStr, endStr, anchorStr, 'charge');
+    var dayBeforeEnroll = new Date(parseDate(enrollStr));
+    dayBeforeEnroll.setDate(dayBeforeEnroll.getDate() - 1);
+    var missedMonths = 0;
+    if (dayBeforeEnroll >= parseDate(anchorStr)) {
+        missedMonths = calcNaturalMonths(anchorStr, formatDate(dayBeforeEnroll), anchorStr, 'deduct');
+    }
+    var chargeA = monthRate * participateMonths;
+    var chargeB = totalDelay - monthRate * missedMonths;
+    var charge = Math.max(chargeA, chargeB);
+    if (charge > totalDelay) charge = totalDelay;
+    if (charge < 0) charge = 0;
+    var note = "总" + tMonths + "个月，月单价" + monthRate.toFixed(2) + "元。";
+    note += " 算法A: " + monthRate.toFixed(2) + "×" + participateMonths + "月=" + chargeA.toFixed(2);
+    note += " 算法B: " + totalDelay + "-" + monthRate.toFixed(2) + "×" + missedMonths + "月=" + chargeB.toFixed(2);
+    note += " → 收费取高者: " + charge.toFixed(2) + "元";
+    return { charge: charge, tMonths: tMonths, monthRate: monthRate, note: note };
+}
+function calcDelayRefund(enrollStr, eventStr, endStr, anchorStr, totalDelay, paidDelay) {
+    var tMonths = calcTotalNaturalMonths(anchorStr, endStr);
+    if (tMonths <= 0) tMonths = 5;
+    var monthRate = totalDelay / tMonths;
+    var evObj = new Date(parseDate(eventStr));
+    evObj.setDate(evObj.getDate() - 1);
+    var lastDay = formatDate(evObj);
+    var consumedMonths = 0;
+    if (parseDate(lastDay) >= parseDate(enrollStr)) {
+        consumedMonths = calcNaturalMonths(enrollStr, lastDay, anchorStr, 'charge');
+    }
+    var remainMonths = calcNaturalMonths(eventStr, endStr, anchorStr, 'deduct');
+    var refundA = monthRate * remainMonths;
+    var refundC = paidDelay - monthRate * consumedMonths;
+    if (refundC < 0) refundC = 0;
+    var refund = Math.min(refundA, refundC);
+    if (refund < 0) refund = 0;
+    var note = "月单价" + monthRate.toFixed(2) + "元。";
+    note += " 算法A: " + monthRate.toFixed(2) + "×" + remainMonths + "月=" + refundA.toFixed(2);
+    note += " 算法C: 实收" + paidDelay.toFixed(2) + "-" + monthRate.toFixed(2) + "×" + consumedMonths + "月=" + refundC.toFixed(2);
+    note += " → 退费取低者: " + refund.toFixed(2) + "元";
+    return { refund: refund, note: note, consumedMonths: consumedMonths, remainMonths: remainMonths };
+}
 
-        updateSemesterData();
+// ==================== 校车费计算 ====================
+function calcBusCharge(enrollStr, endStr, anchorStr, totalBus) {
+    var monthRate = totalBus / 5;
+    var dayBefore = new Date(parseDate(enrollStr));
+    dayBefore.setDate(dayBefore.getDate() - 1);
+    var missedMonths = 0;
+    if (dayBefore >= parseDate(anchorStr)) {
+        missedMonths = calcNaturalMonths(anchorStr, formatDate(dayBefore), anchorStr, 'deduct');
+    }
+    var chargeMonths = 5 - missedMonths;
+    if (chargeMonths > 5) chargeMonths = 5;
+    if (chargeMonths < 0) chargeMonths = 0;
+    var charge = chargeMonths * monthRate;
+    if (charge > totalBus) charge = totalBus;
+    var note = "校车月费" + monthRate.toFixed(0) + "元/月，扣除未乘坐" + missedMonths + "个月，收取" + chargeMonths + "个月 = " + charge.toFixed(2) + "元";
+    return { charge: charge, note: note, chargeMonths: chargeMonths };
+}
+function calcBusRefund(attended, totalDays, paidBus) {
+    var halfDays = Math.floor(totalDays / 2);
+    var refund = 0, note = "";
+    if (attended <= halfDays) {
+        refund = paidBus - 2000;
+        if (refund < 0) refund = 0;
+        note = "乘坐天数(" + attended + "天)未超过半学期(" + halfDays + "天)，按半学期2000元收取，退还 " + paidBus.toFixed(2) + "-2000 = " + refund.toFixed(2) + "元";
+    } else {
+        refund = paidBus - 4000;
+        if (refund < 0) refund = 0;
+        note = "乘坐天数(" + attended + "天)超过半学期(" + halfDays + "天)，按全学期4000元收取，退还 " + paidBus.toFixed(2) + "-4000 = " + refund.toFixed(2) + "元";
+    }
+    return { refund: refund, note: note };
+}
+function makeItem(label, value, tip) {
+    var html = '<div class="detail-item"><span>' + label + ':</span><span>' + value + '</span>';
+    if (tip) html += '<span class="tip" style="width:100%;">' + tip + '</span>';
+    html += '</div>';
+    return html;
+}
+
+// ==================== 页面交互 ====================
+var currentConfig = {};
+window.onload = function () { changeSchool(); };
+
+function changeSchool() {
+    var isPrimary = document.querySelector('input[name="school"]:checked').value === 'primary';
+    var sem = document.getElementById('semester');
+    sem.innerHTML = '';
+    if (isPrimary) {
+        sem.add(new Option(config.primary_s1.name, 'primary_s1'));
+        sem.add(new Option(config.primary_s2.name, 'primary_s2'));
+    } else {
+        sem.add(new Option(config.middle_s1.name, 'middle_s1'));
+        sem.add(new Option(config.middle_s2_g12.name, 'middle_s2_g12'));
+        sem.add(new Option(config.middle_s2_g3.name, 'middle_s2_g3'));
+    }
+    var sc = document.getElementById('scenario');
+    sc.innerHTML = '';
+    sc.add(new Option('✅ 入学 (新生/中途)', 'enroll'));
+    sc.add(new Option('⏸ 请假 (直填天数)', 'leave'));
+    sc.add(new Option('⏸ 休学', 'suspend'));
+    sc.add(new Option('⏹ 中途转学', 'withdraw'));
+    if (isPrimary) {
+        sc.add(new Option('🚌 住宿转校车', 'board_to_bus'));
+        sc.add(new Option('🛏 校车转住宿', 'bus_to_board'));
+    }
+    sc.add(new Option('📉 试读代收费结算', 'trial_fail'));
+    sc.add(new Option('⛔ 强制转学', 'force_quit'));
+    var sv = document.getElementById('serviceType');
+    sv.innerHTML = '';
+    sv.add(new Option('寄宿 (含住宿费)', 'board'));
+    sv.add(new Option('走读 (无住宿/无校车)', 'day'));
+    if (isPrimary) sv.add(new Option('校车 (含校车费)', 'bus'));
+    updateSemesterData();
+}
+
+function updateSemesterData() {
+    var key = document.getElementById('semester').value;
+    currentConfig = config[key];
+    document.getElementById('startDate').value = currentConfig.start;
+    document.getElementById('endDate').value = currentConfig.end;
+    document.getElementById('enrollDate').value = currentConfig.start;
+    document.getElementById('eventDate').value = currentConfig.start;
+    document.getElementById('boardDate').value = currentConfig.start;
+    document.getElementById('busDate').value = currentConfig.start;
+    toggleFields();
+}
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+
+function toggleFields() {
+    var sc = document.getElementById('scenario').value;
+    var key = document.getElementById('semester').value;
+    ['eventDateCol','multiDateGroup','enrollDateCol','boardDateCol','busDateCol',
+     'daysGroup','attendedDaysCol','absentDaysCol','leaveDaysCol','trialDaysCol','sundayDaysCol'
+    ].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
+
+    if (sc === 'enroll') {
+        show('multiDateGroup'); show('enrollDateCol');
+        show('daysGroup'); show('attendedDaysCol'); show('absentDaysCol');
+        autoCalculateDays();
+    } else if (sc === 'withdraw' || sc === 'suspend') {
+        show('eventDateCol');
+        document.getElementById('eventDateLabel').innerText = sc === 'withdraw' ? "正式转学日期" : "休学日期";
+        document.getElementById('eventDateTip').innerText = "指不再来学校的那天（不含当天）";
+        show('multiDateGroup'); show('enrollDateCol');
+        show('daysGroup'); show('attendedDaysCol'); show('absentDaysCol');
+        autoCalculateDays();
+    } else if (sc === 'leave') {
+        show('daysGroup'); show('leaveDaysCol');
+    } else if (sc === 'board_to_bus') {
+        show('eventDateCol');
+        document.getElementById('eventDateLabel').innerText = "转换生效日期";
+        document.getElementById('eventDateTip').innerText = "";
+        show('multiDateGroup'); show('enrollDateCol');
+        show('boardDateCol');
+    } else if (sc === 'bus_to_board') {
+        show('eventDateCol');
+        document.getElementById('eventDateLabel').innerText = "转换生效日期";
+        document.getElementById('eventDateTip').innerText = "";
+        show('multiDateGroup'); show('enrollDateCol');
+        show('busDateCol');
+    } else if (sc === 'trial_fail') {
+        show('daysGroup'); show('trialDaysCol');
     }
 
-    function updateSemesterData() {
-        const key = document.getElementById('semester').value;
-        currentConfig = config[key];
-        
-        document.getElementById('startDate').value = currentConfig.start;
-        document.getElementById('endDate').value = currentConfig.end;
-        
-        document.getElementById('eventDate').value = currentConfig.start;
-        document.getElementById('enrollDate').value = currentConfig.start;
-        document.getElementById('boardDate').value = currentConfig.start;
-        document.getElementById('busDate').value = currentConfig.start;
-        
-        toggleFields();
+    if (key === 'middle_s2_g3' && ['enroll','withdraw','suspend','leave','trial_fail'].includes(sc)) {
+        show('sundayDaysCol');
+        var lbl = document.getElementById('sundayDaysLabel');
+        var tip = document.getElementById('sundayTip');
+        if (sc === 'enroll') {
+            lbl.innerHTML = '预计参加周日天数 <span class="auto-calc-badge">自动计算</span>';
+            tip.innerText = "系统已根据入学日期自动算出剩余周日数。";
+        } else if (sc === 'withdraw' || sc === 'suspend') {
+            lbl.innerHTML = '已参加的周日天数 <span class="auto-calc-badge">自动计算</span>';
+            tip.innerText = "系统已根据入学和变动日期自动算出。";
+        } else if (sc === 'leave') {
+            lbl.innerText = "请假包含的周日天数 (手工填写)";
+            tip.innerText = "若请假跨周日请手动输入。";
+            document.getElementById('sundayDays').value = '';
+        } else if (sc === 'trial_fail') {
+            lbl.innerText = "试读包含的周日天数 (手工填写)";
+            tip.innerText = "若试读跨周日请手动输入。";
+            document.getElementById('sundayDays').value = '';
+        }
     }
+}
 
-    function toggleFields() {
-        const scenario = document.getElementById('scenario').value;
-        const key = document.getElementById('semester').value;
-        
-        document.getElementById('eventDateCol').classList.add('hidden');
-        document.getElementById('multiDateGroup').classList.add('hidden');
-        document.getElementById('enrollDateCol').classList.add('hidden');
-        document.getElementById('boardDateCol').classList.add('hidden');
-        document.getElementById('busDateCol').classList.add('hidden');
-        
-        document.getElementById('daysGroup').classList.add('hidden');
-        document.getElementById('attendedDaysCol').classList.add('hidden');
-        document.getElementById('absentDaysCol').classList.add('hidden');
-        document.getElementById('leaveDaysCol').classList.add('hidden');
-        document.getElementById('trialDaysCol').classList.add('hidden');
-        document.getElementById('sundayDaysCol').classList.add('hidden');
-
-        if (scenario === 'enroll') {
-            document.getElementById('multiDateGroup').classList.remove('hidden');
-            document.getElementById('enrollDateCol').classList.remove('hidden');
-            document.getElementById('daysGroup').classList.remove('hidden');
-            document.getElementById('attendedDaysCol').classList.remove('hidden');
-            document.getElementById('absentDaysCol').classList.remove('hidden');
-            autoCalculateDays();
-        } 
-        else if (scenario === 'withdraw' || scenario === 'suspend') {
-            document.getElementById('eventDateCol').classList.remove('hidden');
-            document.getElementById('eventDateLabel').innerText = scenario === 'withdraw' ? "正式转学日期" : "休学日期";
-            document.getElementById('multiDateGroup').classList.remove('hidden');
-            document.getElementById('enrollDateCol').classList.remove('hidden');
-            document.getElementById('daysGroup').classList.remove('hidden');
-            document.getElementById('attendedDaysCol').classList.remove('hidden');
-            document.getElementById('absentDaysCol').classList.remove('hidden');
-            autoCalculateDays();
+function autoCalculateDays() {
+    var sc = document.getElementById('scenario').value;
+    var key = document.getElementById('semester').value;
+    var endDate = document.getElementById('endDate').value;
+    var enrollDate = document.getElementById('enrollDate').value;
+    var eventDate = document.getElementById('eventDate').value;
+    if (!enrollDate) return;
+    var attended = 0, absent = 0, sunCount = 0;
+    if (sc === 'enroll') {
+        attended = getWorkingDays(enrollDate, endDate);
+        absent = currentConfig.days - attended;
+        if (absent < 0) absent = 0;
+        if (key === 'middle_s2_g3') sunCount = getSundayDays(enrollDate, endDate);
+    } else if (sc === 'withdraw' || sc === 'suspend') {
+        if (!eventDate) return;
+        var evObj = parseDate(eventDate);
+        evObj.setDate(evObj.getDate() - 1);
+        var lastDay = formatDate(evObj);
+        if (parseDate(lastDay) < parseDate(enrollDate)) {
+            attended = 0;
+        } else {
+            attended = getWorkingDays(enrollDate, lastDay);
         }
-        else if (scenario === 'leave') {
-            document.getElementById('daysGroup').classList.remove('hidden');
-            document.getElementById('leaveDaysCol').classList.remove('hidden');
-        }
-        else if (scenario === 'board_to_bus') {
-            document.getElementById('eventDateCol').classList.remove('hidden');
-            document.getElementById('eventDateLabel').innerText = "转换生效日期";
-            document.getElementById('multiDateGroup').classList.remove('hidden');
-            document.getElementById('boardDateCol').classList.remove('hidden'); 
-        }
-        else if (scenario === 'bus_to_board') {
-            document.getElementById('eventDateCol').classList.remove('hidden');
-            document.getElementById('eventDateLabel').innerText = "转换生效日期";
-            document.getElementById('multiDateGroup').classList.remove('hidden');
-            document.getElementById('busDateCol').classList.remove('hidden'); 
-        }
-        else if (scenario === 'trial_fail') {
-            document.getElementById('daysGroup').classList.remove('hidden');
-            document.getElementById('trialDaysCol').classList.remove('hidden');
-        }
-
-        if (key === 'middle_s2_g3' && ['enroll', 'withdraw', 'suspend', 'leave', 'trial_fail'].includes(scenario)) {
-            document.getElementById('sundayDaysCol').classList.remove('hidden');
-            const sunLabel = document.getElementById('sundayDaysLabel');
-            const sunTip = document.getElementById('sundayTip');
-            
-            if(scenario === 'enroll') {
-                sunLabel.innerHTML = '预计参加周日天数 <span class="auto-calc-badge">自动计算</span>';
-                sunTip.innerText = "系统已根据入学日期自动算出剩余周日数。";
-            } else if(scenario === 'withdraw' || scenario === 'suspend') {
-                sunLabel.innerHTML = '已参加的周日天数 <span class="auto-calc-badge">自动计算</span>';
-                sunTip.innerText = "系统已根据入学和变动日期自动算出。";
-            } else if(scenario === 'leave') {
-                sunLabel.innerText = "请假包含的周日天数 (手工填写)";
-                sunTip.innerText = "因请假仅填天数，若跨周日请手动输入。";
-                document.getElementById('sundayDays').value = '';
-            } else if(scenario === 'trial_fail') {
-                sunLabel.innerText = "试读包含的周日天数 (手工填写)";
-                sunTip.innerText = "若试读跨周日请手动输入。";
-                document.getElementById('sundayDays').value = '';
+        absent = getWorkingDays(eventDate, endDate);
+        if (key === 'middle_s2_g3') {
+            if (parseDate(lastDay) >= parseDate(enrollDate)) {
+                sunCount = getSundayDays(enrollDate, lastDay);
             }
         }
     }
+    document.getElementById('attendedDays').value = attended > 0 ? attended : 0;
+    document.getElementById('absentDays').value = absent > 0 ? absent : 0;
+    if (key === 'middle_s2_g3' && (sc === 'enroll' || sc === 'withdraw' || sc === 'suspend')) {
+        document.getElementById('sundayDays').value = sunCount > 12 ? 12 : sunCount;
+    }
+}
 
-    function autoCalculateDays() {
-        const scenario = document.getElementById('scenario').value;
-        const key = document.getElementById('semester').value;
-        const endDate = document.getElementById('endDate').value;
-        const enrollDate = document.getElementById('enrollDate').value;
-        const eventDate = document.getElementById('eventDate').value;
+function syncAbsentDays() {
+    var att = parseInt(document.getElementById('attendedDays').value) || 0;
+    document.getElementById('absentDays').value = Math.max(currentConfig.days - att, 0);
+}
+function syncAttendedDays() {
+    var abs = parseInt(document.getElementById('absentDays').value) || 0;
+    document.getElementById('attendedDays').value = Math.max(currentConfig.days - abs, 0);
+}
 
-        if (!enrollDate) return;
+// ==================== 主计算函数 ====================
+function calculate() {
+    var sc = document.getElementById('scenario').value;
+    var isPrimary = document.querySelector('input[name="school"]:checked').value === 'primary';
+    var key = document.getElementById('semester').value;
 
-        let attended = 0;
-        let absent = 0;
-        let sunCount = 0;
+    if (sc === 'force_quit') {
+        document.getElementById('detailsBox').innerHTML = '<div class="warning-box">⚠️ 强制转学情况特殊，请开会沟通并根据会议决议手动核算退费金额。</div>';
+        document.getElementById('totalAmountBox').style.display = 'none';
+        return;
+    }
+    document.getElementById('totalAmountBox').style.display = 'block';
 
-        if (scenario === 'enroll') {
-            attended = getWorkingDays(enrollDate, endDate);
-            absent = currentConfig.days - attended;
-            if (absent < 0) absent = 0;
-            if (key === 'middle_s2_g3') sunCount = getSundayDays(enrollDate, endDate);
-        } 
-        else if (scenario === 'withdraw' || scenario === 'suspend') {
-            if(!eventDate) return;
-            
-            let parts = eventDate.split('-');
-            let evDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-            evDateObj.setDate(evDateObj.getDate() - 1);
-            let lastAttendedDate = formatDate(evDateObj);
-            
-            attended = getWorkingDays(enrollDate, lastAttendedDate);
-            absent = getWorkingDays(eventDate, endDate);
-            
-            if (key === 'middle_s2_g3') sunCount = getSundayDays(enrollDate, lastAttendedDate);
+    var baseTuition = parseFloat(document.getElementById('studentType').value);
+    var service = document.getElementById('serviceType').value;
+    var attended = parseInt(document.getElementById('attendedDays').value) || 0;
+    var absent = parseInt(document.getElementById('absentDays').value) || 0;
+    var sundayDays = parseInt(document.getElementById('sundayDays').value) || 0;
+    var rate = currentConfig.mealRate;
+    var cap = currentConfig.mealCap;
+    var enrollStr = document.getElementById('enrollDate').value || currentConfig.start;
+    var eventStr = document.getElementById('eventDate').value || currentConfig.start;
+    var startStr = currentConfig.start;
+    var endStr = currentConfig.end;
+
+    var detailsHtml = '';
+    var total = 0;
+
+    // ==================== 1. 入学（收费）====================
+    if (sc === 'enroll') {
+        var ratioResult = getTuitionRatio(startStr, enrollStr);
+        var ratio = ratioResult.ratio;
+        var ratioText = ratioResult.text;
+        var tuitionCharge = baseTuition * ratio;
+        if (baseTuition > 0) {
+            detailsHtml += makeItem('学费 (按' + ratioText + '收取)', '收 ¥ ' + tuitionCharge.toFixed(2));
         }
-        
-        document.getElementById('attendedDays').value = attended > 0 ? attended : 0;
-        document.getElementById('absentDays').value = absent > 0 ? absent : 0;
+        total += tuitionCharge;
 
-        if (key === 'middle_s2_g3' && (scenario === 'enroll' || scenario === 'withdraw' || scenario === 'suspend')) {
-            document.getElementById('sundayDays').value = sunCount > 12 ? 12 : sunCount;
+        if (service === 'board') {
+            var accCharge = currentConfig.acc * ratio;
+            detailsHtml += makeItem('住宿费 (按' + ratioText + '收取)', '收 ¥ ' + accCharge.toFixed(2));
+            total += accCharge;
         }
+
+        var busChargeVal = 0;
+        if (service === 'bus' && currentConfig.bus > 0) {
+            var busResult = calcBusCharge(enrollStr, endStr, startStr, currentConfig.bus);
+            busChargeVal = busResult.charge;
+            detailsHtml += makeItem('校车费', '收 ¥ ' + busChargeVal.toFixed(2), busResult.note);
+            total += busChargeVal;
+        }
+
+        var delayChargeVal = 0;
+        if (currentConfig.delay > 0) {
+            var delayResult = calcDelayCharge(enrollStr, endStr, startStr, currentConfig.delay);
+            delayChargeVal = delayResult.charge;
+            detailsHtml += makeItem('延时服务费', '收 ¥ ' + delayChargeVal.toFixed(2), delayResult.note);
+            total += delayChargeVal;
+        }
+
+        var mealResult = calcMealCharge(attended, absent, rate, cap);
+        detailsHtml += makeItem('日常餐费 (按实际来的天数计算：' + attended + '天 × ' + rate + '元 = ' + (attended * rate).toFixed(2) + '元)', '收 ¥ ' + mealResult.charge.toFixed(2), mealResult.note);
+        total += mealResult.charge;
+
+        var sunCharge = 0;
+        if (currentConfig.sunRate) {
+            sunCharge = sundayDays * currentConfig.sunRate;
+            detailsHtml += makeItem('初三周日餐费 (' + sundayDays + '天×18元)', '收 ¥ ' + sunCharge.toFixed(2));
+            total += sunCharge;
+        }
+
+        document.getElementById('totalAmountBox').innerHTML = '应收合计：<span id="totalAmount">¥ ' + total.toFixed(2) + '</span>';
     }
 
-    function syncAbsentDays() {
-        let attended = parseInt(document.getElementById('attendedDays').value) || 0;
-        let absent = currentConfig.days - attended;
-        document.getElementById('absentDays').value = absent > 0 ? absent : 0;
-    }
-    function syncAttendedDays() {
-        let absent = parseInt(document.getElementById('absentDays').value) || 0;
-        let attended = currentConfig.days - absent;
-        document.getElementById('attendedDays').value = attended > 0 ? attended : 0;
-    }
+    // ==================== 2. 转学 / 休学（退费）====================
+    else if (sc === 'withdraw' || sc === 'suspend') {
+        var ratioResult2 = getTuitionRatio(startStr, enrollStr);
+        var ratio2 = ratioResult2.ratio;
+        var ratioText2 = ratioResult2.text;
+        var paidTuition = baseTuition * ratio2;
+        var paidAcc = (service === 'board') ? currentConfig.acc * ratio2 : 0;
 
-    // --- 财务计算大脑 ---
-    function calculate() {
-        const scenario = document.getElementById('scenario').value;
-        const isPrimary = document.querySelector('input[name="school"]:checked').value === 'primary';
-        
-        if (scenario === 'force_quit') {
-            document.getElementById('detailsBox').innerHTML = `<div class="warning-box">⚠️ 强制转学情况特殊，请开会沟通并根据会议决议手动核算退费金额。</div>`;
-            document.getElementById('totalAmountBox').style.display = 'none';
+        var enrollToEnd = getWorkingDays(enrollStr, endStr);
+        var missedBeforeEnroll = currentConfig.days - enrollToEnd;
+        if (missedBeforeEnroll < 0) missedBeforeEnroll = 0;
+        var paidMealResult = calcMealCharge(enrollToEnd, missedBeforeEnroll, rate, cap);
+        var paidMeal = paidMealResult.charge;
+
+        var paidBus = 0;
+        if (service === 'bus' && currentConfig.bus > 0) {
+            var busResult2 = calcBusCharge(enrollStr, endStr, startStr, currentConfig.bus);
+            paidBus = busResult2.charge;
+        }
+
+        var paidDelay = 0;
+        if (currentConfig.delay > 0) {
+            var delayResult2 = calcDelayCharge(enrollStr, endStr, startStr, currentConfig.delay);
+            paidDelay = delayResult2.charge;
+        }
+
+        var paidSunMeal = 0;
+        if (currentConfig.sunRate) {
+            var totalSunFromEnroll = getSundayDays(enrollStr, endStr);
+            if (totalSunFromEnroll > currentConfig.sunTotal) totalSunFromEnroll = currentConfig.sunTotal;
+            paidSunMeal = totalSunFromEnroll * currentConfig.sunRate;
+        }
+
+        // === 当天入学当天退学：全退 ===
+        var isSameDayQuit = (enrollStr === eventStr);
+        if (isSameDayQuit) {
+            if (baseTuition > 0) detailsHtml += makeItem('学费全退', '<span style="color:green;">退 ¥ ' + paidTuition.toFixed(2) + '</span>', '当天入学当天退学，全额退还');
+            if (service === 'board') detailsHtml += makeItem('住宿费全退', '<span style="color:green;">退 ¥ ' + paidAcc.toFixed(2) + '</span>', '当天入学当天退学，全额退还');
+            if (service === 'bus' && paidBus > 0) detailsHtml += makeItem('校车费全退', '<span style="color:green;">退 ¥ ' + paidBus.toFixed(2) + '</span>', '当天入学当天退学，全额退还');
+            detailsHtml += makeItem('日常餐费全退', '<span style="color:green;">退 ¥ ' + paidMeal.toFixed(2) + '</span>', '当天入学当天退学，全额退还');
+            if (currentConfig.sunRate) {
+                detailsHtml += makeItem('初三周日餐费全退', '<span style="color:green;">退 ¥ ' + paidSunMeal.toFixed(2) + '</span>', '当天入学当天退学，全额退还');
+            }
+            if (currentConfig.delay > 0) {
+                detailsHtml += makeItem('延时服务费全退 (仅供参考，不计入总额)', '<span style="color:#7f8c8d;">退 ¥ ' + paidDelay.toFixed(2) + '</span>', '当天入学当天退学，全额退还。<br><span style="color:#e74c3c; font-weight:bold;">⚠️ 一般退费不退延时费，请假不退延时费，延时费退费不计入应退总额中</span>');
+            }
+            total = paidTuition + paidAcc + paidMeal + paidBus + paidSunMeal;
+            if (sc === 'suspend' && isPrimary) {
+                total -= 1000;
+                if (total < 0) total = 0;
+                detailsHtml += makeItem('休学学杂费 (教材费等)', '<span style="color:red;">扣除 ¥ 1000.00</span>');
+            }
+            document.getElementById('detailsBox').innerHTML = detailsHtml;
+            document.getElementById('totalAmountBox').innerHTML = '应退合计：<span id="totalAmount" style="color:green;">¥ ' + total.toFixed(2) + '</span>';
             return;
         }
-        document.getElementById('totalAmountBox').style.display = 'block';
 
-        const baseTuition = parseFloat(document.getElementById('studentType').value);
-        const service = document.getElementById('serviceType').value;
-        
-        const attended = parseInt(document.getElementById('attendedDays').value) || 0;
-        const absent = parseInt(document.getElementById('absentDays').value) || 0;
-        const sundayDays = parseInt(document.getElementById('sundayDays').value) || 0;
-        
-        let cap = currentConfig.mealCap;
-        let rate = currentConfig.mealRate;
+        // === 正常退学/休学流程 ===
+        var overOneMonth = isOverOneMonth(enrollStr, eventStr);
 
-        // 【核心修改1：精准算出该生最初交了多少餐费】
-        let originalMealCharge = 0;
-        let enrollD_val = document.getElementById('enrollDate').value || currentConfig.start;
-        let enrollToTermEndDays = getWorkingDays(enrollD_val, currentConfig.end);
-        let missedBeforeEnrollDays = currentConfig.days - enrollToTermEndDays;
-        if (missedBeforeEnrollDays < 0) missedBeforeEnrollDays = 0;
-
-        if (isPrimary) {
-            let chargeByAttended = enrollToTermEndDays * rate;
-            let chargeByAbsent = cap - (missedBeforeEnrollDays * rate);
-            originalMealCharge = Math.max(chargeByAttended, chargeByAbsent);
-            if (originalMealCharge > cap) originalMealCharge = cap;
-            if (originalMealCharge < 0) originalMealCharge = 0;
-        } else {
-            originalMealCharge = enrollToTermEndDays * rate;
-            if (originalMealCharge > cap) originalMealCharge = cap;
-        }
-
-        let mealCharge = 0;
-        let mealNote = "";
-        
-        if (scenario === 'enroll') {
-            if (isPrimary) {
-                let chargeByAttended = attended * rate;
-                let chargeByAbsent = cap - (absent * rate);
-                mealCharge = Math.max(chargeByAttended, chargeByAbsent);
-                if (mealCharge > cap) mealCharge = cap; 
-                if (mealCharge < 0) mealCharge = 0;
-
-                if (mealCharge === cap && chargeByAttended >= cap) {
-                    mealNote = `来的天数(${attended})×${rate} ≥ ${cap}，收取顶额 ${cap}元`;
-                } else if (chargeByAbsent > chargeByAttended) {
-                    mealNote = `${cap} - 没来天数(${absent})×${rate} > 来的天数×${rate}，收费取高者：${mealCharge.toFixed(2)}元`;
-                } else {
-                    mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
-                }
-            } else {
-                mealCharge = attended * rate;
-                if (mealCharge > cap) mealCharge = cap; 
-                mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
-            }
-        } else {
-            mealCharge = originalMealCharge; // 退费时，餐费基数是他当初交的钱
-        }
-
-        let delayCharge = 0;
-        let delayNote = "";
-        if (currentConfig.delay > 0) {
-            let tMonths = getNaturalMonths(currentConfig.start, currentConfig.end, currentConfig.start);
-            if (tMonths <= 0) tMonths = 5; 
-            let monthlyDelayRate = currentConfig.delay / tMonths;
-
-            let enrollD = document.getElementById('enrollDate').value || currentConfig.start;
-            let cMonths = getNaturalMonths(enrollD, currentConfig.end, currentConfig.start);
-            
-            delayCharge = cMonths * monthlyDelayRate;
-            if (delayCharge > currentConfig.delay) delayCharge = currentConfig.delay;
-            
-            delayNote = `(按自然月计算：不足半月按半月收取，共计 ${cMonths} 个月，总计 ${tMonths} 个月)`;
-        }
-
-        let detailsHtml = '';
-        let total = 0;
-
-        // 1. 入学 (收费)
-        if (scenario === 'enroll') {
-            const startDate = new Date(currentConfig.start);
-            const enrollDate = new Date(document.getElementById('enrollDate').value);
-            
-            let monthsPassed = 0;
-            if (!isNaN(enrollDate) && enrollDate > startDate) {
-                monthsPassed = (enrollDate.getFullYear() - startDate.getFullYear()) * 12 + (enrollDate.getMonth() - startDate.getMonth());
-                if (enrollDate.getDate() < startDate.getDate()) monthsPassed--;
-            }
-
-            let ratio = 1; let ratioText = "100%";
-            if (monthsPassed > 0) {
-                if (monthsPassed < 1) { ratio = 0.95; ratioText = "95%"; }
-                else if (monthsPassed < 2) { ratio = 0.80; ratioText = "80%"; }
-                else if (monthsPassed < 3) { ratio = 0.60; ratioText = "60%"; }
-                else { ratio = 0.40; ratioText = "40%"; }
-            }
-
-            let tuitionCharge = baseTuition * ratio;
-            let accCharge = (service === 'board') ? (currentConfig.acc * ratio) : 0;
-            let busCharge = (service === 'bus') ? (currentConfig.bus * ratio) : 0; 
-
-            if (baseTuition > 0) detailsHtml += `<div class="detail-item"><span>学费 (按${ratioText}收取):</span><span>收 ¥ ${tuitionCharge.toFixed(2)}</span></div>`;
-            if (service === 'board') detailsHtml += `<div class="detail-item"><span>住宿费 (按${ratioText}收取):</span><span>收 ¥ ${accCharge.toFixed(2)}</span></div>`;
-            if (service === 'bus') detailsHtml += `<div class="detail-item"><span>校车费 (按比例预估):</span><span>收 ¥ ${busCharge.toFixed(2)}</span></div>`;
-            
-            if (currentConfig.delay > 0) detailsHtml += `<div class="detail-item"><span>延时服务费 ${delayNote}:</span><span>收 ¥ ${delayCharge.toFixed(2)}</span></div>`;
-            
-            detailsHtml += `<div class="detail-item"><span>日常餐费 (${mealNote}):</span><span>收 ¥ ${mealCharge.toFixed(2)}</span></div>`;
-            
-            let sunCharge = 0;
-            if (currentConfig.sunRate) {
-                sunCharge = sundayDays * currentConfig.sunRate;
-                detailsHtml += `<div class="detail-item"><span>初三周日餐费 (${sundayDays}天×18元):</span><span>收 ¥ ${sunCharge.toFixed(2)}</span></div>`;
-            }
-
-            total = tuitionCharge + accCharge + busCharge + delayCharge + mealCharge + sunCharge;
-            document.getElementById('totalAmountBox').innerHTML = `应收合计：<span id="totalAmount">¥ ${total.toFixed(2)}</span>`;
-        }
-
-        // 2. 转学 / 休学 (退费)
-        else if (scenario === 'withdraw' || scenario === 'suspend') {
-            const enrollDate = new Date(document.getElementById('enrollDate').value);
-            const eventDate = new Date(document.getElementById('eventDate').value);
-            const startDate = new Date(currentConfig.start);
-            
-            let monthsPassedEnroll = 0;
-            if (!isNaN(enrollDate) && enrollDate > startDate) {
-                monthsPassedEnroll = (enrollDate.getFullYear() - startDate.getFullYear()) * 12 + (enrollDate.getMonth() - startDate.getMonth());
-                if (enrollDate.getDate() < startDate.getDate()) monthsPassedEnroll--;
-            }
-
-            let ratio = 1; let ratioText = "100%";
-            if (monthsPassedEnroll > 0) {
-                if (monthsPassedEnroll < 1) { ratio = 0.95; ratioText = "95%"; }
-                else if (monthsPassedEnroll < 2) { ratio = 0.80; ratioText = "80%"; }
-                else if (monthsPassedEnroll < 3) { ratio = 0.60; ratioText = "60%"; }
-                else { ratio = 0.40; ratioText = "40%"; }
-            }
-
-            let monthsStayed = 0;
-            if (!isNaN(eventDate) && !isNaN(enrollDate) && eventDate > enrollDate) {
-                monthsStayed = (eventDate.getFullYear() - enrollDate.getFullYear()) * 12 + (eventDate.getMonth() - enrollDate.getMonth());
-                if (eventDate.getDate() < enrollDate.getDate()) monthsStayed--;
-            }
-
-            let tuitionRefund = 0; let accRefund = 0; let busRefund = 0;
-            
-            if (monthsStayed < 1) {
-                tuitionRefund = (baseTuition * ratio) - (baseTuition * 0.3);
+        // 学费退费
+        var tuitionRefund = 0;
+        if (baseTuition > 0) {
+            if (!overOneMonth) {
+                tuitionRefund = paidTuition - baseTuition * 0.3;
                 if (tuitionRefund < 0) tuitionRefund = 0;
-                
-                accRefund = (service === 'board') ? (currentConfig.acc * ratio) - (currentConfig.acc * 0.3) : 0;
+                detailsHtml += makeItem('学费退费 (入读未满1月)', '<span style="color:green;">退 ¥ ' + tuitionRefund.toFixed(2) + '</span>', '实收 ' + paidTuition.toFixed(2) + '(' + ratioText2 + ') - 原总额' + baseTuition + '×30% = ' + tuitionRefund.toFixed(2));
+            } else {
+                detailsHtml += makeItem('学费退费 (入读超过1个月)', '<span style="color:#e74c3c;">不予清退</span>');
+            }
+        }
+
+        // 住宿费退费
+        var accRefund = 0;
+        if (service === 'board') {
+            if (!overOneMonth) {
+                accRefund = paidAcc - currentConfig.acc * 0.3;
                 if (accRefund < 0) accRefund = 0;
-                
-                if (baseTuition > 0) detailsHtml += `<div class="detail-item"><span>学费退费 (实缴${ratioText} - 扣除原总额30%):</span><span style="color:green;">退 ¥ ${tuitionRefund.toFixed(2)}</span></div>`;
-                if(service === 'board') detailsHtml += `<div class="detail-item"><span>住宿退费 (实缴${ratioText} - 扣除原总额30%):</span><span style="color:green;">退 ¥ ${accRefund.toFixed(2)}</span></div>`;
+                detailsHtml += makeItem('住宿费退费 (入读未满1月)', '<span style="color:green;">退 ¥ ' + accRefund.toFixed(2) + '</span>', '实收 ' + paidAcc.toFixed(2) + '(' + ratioText2 + ') - 原总额' + currentConfig.acc + '×30% = ' + accRefund.toFixed(2));
             } else {
-                detailsHtml += `<div class="detail-item"><span>学费/住宿费退费 (入读超1个月):</span><span>不予清退</span></div>`;
-            }
-
-            // 【核心修改2：校车费退费按乘坐天数是否超过半学期来算】
-            if (service === 'bus') {
-                let halfDays = currentConfig.days / 2;
-                let busChargePaid = currentConfig.bus * ratio; 
-                
-                if (attended <= halfDays) {
-                    busRefund = 2000;
-                    if (busRefund > busChargePaid) busRefund = busChargePaid; // 防止交的钱还不到2000
-                    let busText = `乘坐天数(${attended}天)未超半学期(${halfDays}天)退2000`;
-                    detailsHtml += `<div class="detail-item"><span>校车退费 (${busText}):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
-                } else {
-                    busRefund = 0;
-                    let busText = `乘坐天数(${attended}天)超过半学期(${halfDays}天)不退`;
-                    detailsHtml += `<div class="detail-item"><span>校车退费 (${busText}):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
-                }
-            }
-
-            if (currentConfig.delay > 0) {
-                let tMonths = getNaturalMonths(currentConfig.start, currentConfig.end, currentConfig.start);
-                if (tMonths <= 0) tMonths = 5;
-                let monthlyDelayRate = currentConfig.delay / tMonths;
-                
-                let enrollD = document.getElementById('enrollDate').value || currentConfig.start;
-                let eventD = document.getElementById('eventDate').value || currentConfig.end;
-                
-                let parts = eventD.split('-');
-                let evDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                evDateObj.setDate(evDateObj.getDate() - 1);
-                let lastAttendedDate = formatDate(evDateObj);
-                
-                let consumedMonths = getNaturalMonths(enrollD, lastAttendedDate, currentConfig.start);
-                
-                let consumedCharge = consumedMonths * monthlyDelayRate;
-                let delayRefund = delayCharge - consumedCharge;
-                if (delayRefund < 0) delayRefund = 0;
-
-                detailsHtml += `<div class="detail-item" style="flex-wrap: wrap;">
-                    <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span>延时费退费 (实收¥${delayCharge.toFixed(2)} - 扣除${consumedMonths}个月¥${consumedCharge.toFixed(2)}):</span>
-                        <span style="color:#7f8c8d;">退 ¥ ${delayRefund.toFixed(2)}</span>
-                    </div>
-                    <span class="tip" style="width:100%; text-align:left; color:#e74c3c; margin-top:5px;">一般退费不退延时费，延时费不退，请假也不退，延时费退费不计入应退总额中</span>
-                </div>`;
-            }
-
-            // 【核心修改3：餐费退费，取“没来天数*47”与“实交餐费 - 来的天数*47”的低者】
-            let mealRefund = 0;
-            let refundNote = "";
-            if (isPrimary) {
-                let refundByAbsent = absent * rate; 
-                let refundByAttended = mealCharge - (attended * rate); 
-                mealRefund = Math.min(refundByAbsent, refundByAttended);
-                if (mealRefund < 0) mealRefund = 0;
-
-                if (refundByAbsent < refundByAttended) {
-                    refundNote = `没来天数(${absent})×${rate} < 实交(${mealCharge.toFixed(2)}) - 来的天数(${attended})×${rate}，退费取低者：${mealRefund.toFixed(2)}元`;
-                } else {
-                    refundNote = `实交(${mealCharge.toFixed(2)}) - 来的天数(${attended})×${rate} ≤ 没来天数(${absent})×${rate}，退费取低者：${mealRefund.toFixed(2)}元`;
-                }
-            } else {
-                mealRefund = absent * rate;
-                refundNote = `没来天数(${absent}天) × ${rate}元 = ${mealRefund.toFixed(2)}元`;
-            }
-            
-            detailsHtml += `<div class="detail-item"><span>日常餐费退费:</span><span style="color:green;">退 ¥ ${mealRefund.toFixed(2)}</span><span class="tip">${refundNote}</span></div>`;
-
-            let sunRefund = 0;
-            if (currentConfig.sunRate) {
-                sunRefund = (currentConfig.sunTotal - sundayDays) * currentConfig.sunRate;
-                if (sunRefund < 0) sunRefund = 0;
-                detailsHtml += `<div class="detail-item"><span>初三周日餐费退费 (总12天 - 已上${sundayDays}天)×18:</span><span style="color:green;">退 ¥ ${sunRefund.toFixed(2)}</span></div>`;
-            }
-
-            total = tuitionRefund + accRefund + busRefund + mealRefund + sunRefund;
-
-            if (scenario === 'suspend') {
-                if (isPrimary) {
-                    detailsHtml += `<div class="detail-item"><span>休学学位费 (小学扣除):</span><span style="color:red;">扣除 ¥ 1000.00</span></div>`;
-                    total -= 1000;
-                    document.getElementById('totalAmountBox').innerHTML = `应退合计 (已扣学位费)：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
-                } else {
-                    detailsHtml += `<div class="detail-item"><span>休学学位费:</span><span style="color:#7f8c8d;">初中不扣除</span></div>`;
-                    document.getElementById('totalAmountBox').innerHTML = `应退合计：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
-                }
-            } else {
-                document.getElementById('totalAmountBox').innerHTML = `应退合计：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
+                detailsHtml += makeItem('住宿费退费 (入读超过1个月)', '<span style="color:#e74c3c;">不予清退</span>');
             }
         }
 
-        // 3. 请假
-        else if (scenario === 'leave') {
-            const leaveDays = parseInt(document.getElementById('leaveDays').value) || 0;
-            let mealRefund = leaveDays * currentConfig.mealRate;
-            let busRefund = 0; let sunRefund = 0;
-            
-            detailsHtml += `<div class="detail-item"><span>学费/住宿费:</span><span>请假不退还</span></div>`;
-            detailsHtml += `<div class="detail-item"><span>日常餐费退费 (${leaveDays}天 × ${currentConfig.mealRate}元):</span><span style="color:green;">退 ¥ ${mealRefund.toFixed(2)}</span></div>`;
-            
-            if (service === 'bus') {
-                busRefund = (currentConfig.bus / currentConfig.days) * leaveDays;
-                detailsHtml += `<div class="detail-item"><span>校车退费 (${currentConfig.bus} ÷ ${currentConfig.days}天 × ${leaveDays}天):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
-            }
-            
-            if (currentConfig.sunRate && sundayDays > 0) {
-                sunRefund = sundayDays * currentConfig.sunRate;
-                detailsHtml += `<div class="detail-item"><span>初三周日餐费退费 (请假${sundayDays}个周日×18元/天):</span><span style="color:green;">退 ¥ ${sunRefund.toFixed(2)}</span></div>`;
-            }
-
-            total = mealRefund + busRefund + sunRefund;
-            document.getElementById('totalAmountBox').innerHTML = `应退合计：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
+        // 校车费退费
+        var busRefund = 0;
+        if (service === 'bus' && currentConfig.bus > 0) {
+            var busRefResult = calcBusRefund(attended, currentConfig.days, paidBus);
+            busRefund = busRefResult.refund;
+            detailsHtml += makeItem('校车费退费', '<span style="color:green;">退 ¥ ' + busRefund.toFixed(2) + '</span>', busRefResult.note);
         }
 
-        // 4. 试读代收费
-        else if (scenario === 'trial_fail') {
-            const trialDays = parseInt(document.getElementById('trialDays').value) || 0;
-            let mealCharge = trialDays * 60; 
-            
-            detailsHtml += `<div class="warning-box">💡 政策提示：若试读未录取，不收取任何费用(全额为0)。此计算仅适用于【录取了但未立即入读(超3个工作日)】的试读期间代收费结算。</div>`;
-            detailsHtml += `<div class="detail-item"><span>学费:</span><span>不收取 ¥ 0.00</span></div>`;
-            detailsHtml += `<div class="detail-item"><span>住宿费:</span><span>不收取 ¥ 0.00</span></div>`;
-            detailsHtml += `<div class="detail-item"><span>试读餐费 (${trialDays}天 × 60元/天):</span><span>收 ¥ ${mealCharge.toFixed(2)}</span></div>`;
-            
-            let busCharge = 0;
-            if (service === 'bus') {
-                busCharge = trialDays * 80; 
-                detailsHtml += `<div class="detail-item"><span>试读校车费 (${trialDays}天 × 80元/天):</span><span>收 ¥ ${busCharge.toFixed(2)}</span></div>`;
-            }
-            
-            let sunCharge = 0;
-            if (currentConfig.sunRate && sundayDays > 0) {
-                sunCharge = sundayDays * currentConfig.sunRate;
-                detailsHtml += `<div class="detail-item"><span>初三周日餐费 (${sundayDays}天×18元):</span><span>收 ¥ ${sunCharge.toFixed(2)}</span></div>`;
-            }
-
-            total = mealCharge + busCharge + sunCharge;
-            document.getElementById('totalAmountBox').innerHTML = `应收代收费合计：<span id="totalAmount">¥ ${total.toFixed(2)}</span>`;
+        // 延时服务费退费（只显示不计入总额）
+        var delayRefund = 0;
+        if (currentConfig.delay > 0) {
+            var delayRefResult = calcDelayRefund(enrollStr, eventStr, endStr, startStr, currentConfig.delay, paidDelay);
+            delayRefund = delayRefResult.refund;
+            detailsHtml += makeItem('延时服务费退费 (仅供参考，不计入总额)', '<span style="color:#7f8c8d;">退 ¥ ' + delayRefund.toFixed(2) + '</span>', delayRefResult.note + '<br><span style="color:#e74c3c; font-weight:bold;">⚠️ 一般退费不退延时费，请假不退延时费，延时费退费不计入应退总额中</span>');
         }
 
-        // 5. 住宿转校车
-        else if (scenario === 'board_to_bus') {
-            const boardD = new Date(document.getElementById('boardDate').value);
-            const eventD = new Date(document.getElementById('eventDate').value);
-            const startD = new Date(currentConfig.start);
-            const day = eventD.getDate();
-            
-            let monthsPassed = 0;
-            if (!isNaN(eventD) && !isNaN(boardD) && eventD > boardD) {
-                monthsPassed = (eventD.getFullYear() - boardD.getFullYear()) * 12 + (eventD.getMonth() - boardD.getMonth());
-                if (eventD.getDate() < boardD.getDate()) monthsPassed--;
-            }
+        // 日常餐费退费（退费取低者）
+        var mealRefResult = calcMealRefund(attended, absent, rate, paidMeal);
+        var mealRefund = mealRefResult.refund;
+        detailsHtml += makeItem('日常餐费退费', '<span style="color:green;">退 ¥ ' + mealRefund.toFixed(2) + '</span>', mealRefResult.note);
 
-            if (monthsPassed >= 1) {
-                detailsHtml += `<div class="detail-item"><span>差价退还:</span><span>¥ 0.00</span></div>`;
-                detailsHtml += `<div class="tip" style="color:#e74c3c; font-weight:bold;">注：已超过一个月 (自第一次入住日 ${document.getElementById('boardDate').value} 起算)，按规定住宿转校车不予退还差价。</div>`;
-                document.getElementById('totalAmountBox').innerHTML = `应退合计：<span id="totalAmount" style="color:green;">¥ 0.00</span>`;
-            } else {
-                let monthIndex = (eventD.getFullYear() - startD.getFullYear()) * 12 + (eventD.getMonth() - startD.getMonth());
-                if (monthIndex < 0) monthIndex = 0; 
-                
-                let consumedMonths = day <= 15 ? (monthIndex + 0.5) : (monthIndex + 1);
-                let remainMonths = 5 - consumedMonths;
-                if (remainMonths < 0) remainMonths = 0;
-                
-                let refundAmount = remainMonths * 400; 
-                
-                detailsHtml += `<div class="detail-item"><span>差价退还 (${remainMonths}个月 × 400元/月):</span><span style="color:green; font-weight:bold;">退 ¥ ${refundAmount.toFixed(2)}</span></div>`;
-                detailsHtml += `<div class="tip">注：入住未满一个月。转换日为 ${day} 号，${day<=15?'当月算半个月':'当月算整月'}。<br>本学期(按5个月计)剩余 ${remainMonths} 个月，退还剩余月份的差价。</div>`;
-                
-                total = refundAmount;
-                document.getElementById('totalAmountBox').innerHTML = `应退合计：<span id="totalAmount" style="color:green;">¥ ${total.toFixed(2)}</span>`;
-            }
-            document.getElementById('totalAmountBox').style.display = 'block';
+        // 初三周日餐费退费
+        var sunRefund = 0;
+        if (currentConfig.sunRate) {
+            var sunNotAttended = currentConfig.sunTotal - sundayDays;
+            if (sunNotAttended < 0) sunNotAttended = 0;
+            sunRefund = sunNotAttended * currentConfig.sunRate;
+            detailsHtml += makeItem('初三周日餐费退费 (总' + currentConfig.sunTotal + '天 - 已上' + sundayDays + '天)×18', '<span style="color:green;">退 ¥ ' + sunRefund.toFixed(2) + '</span>');
         }
 
-        // 6. 校车转住宿
-        else if (scenario === 'bus_to_board') {
-            const startD = new Date(currentConfig.start);
-            const eventD = new Date(document.getElementById('eventDate').value);
-            const day = eventD.getDate();
-            
-            let monthIndex = (eventD.getFullYear() - startD.getFullYear()) * 12 + (eventD.getMonth() - startD.getMonth());
-            if (monthIndex < 0) monthIndex = 0;
-            
-            let consumedMonths = day <= 15 ? (monthIndex + 0.5) : (monthIndex + 1);
-            let remainMonths = 5 - consumedMonths;
-            if (remainMonths < 0) remainMonths = 0;
-            
-            let chargeAmount = remainMonths * 400;
-            
-            detailsHtml += `<div class="detail-item"><span>差价补缴 (${remainMonths}个月 × 400元/月):</span><span style="font-weight:bold;">收 ¥ ${chargeAmount.toFixed(2)}</span></div>`;
-            detailsHtml += `<div class="tip">注：转换日为 ${day} 号，${day<=15?'当月算半个月':'当月算整月'}。<br>本学期(按5个月计)剩余 ${remainMonths} 个月，需补缴剩余月份的差价。</div>`;
-            
-            total = chargeAmount;
-            document.getElementById('totalAmountBox').innerHTML = `应收合计：<span id="totalAmount">¥ ${total.toFixed(2)}</span>`;
-            document.getElementById('totalAmountBox').style.display = 'block';
+        // 休学学杂费（小学扣1000）
+        var miscDeduct = 0;
+        if (sc === 'suspend' && isPrimary) {
+            miscDeduct = 1000;
+            detailsHtml += makeItem('休学学杂费 (教材费等)', '<span style="color:red;">扣除 ¥ ' + miscDeduct.toFixed(2) + '</span>');
         }
 
-        document.getElementById('detailsBox').innerHTML = detailsHtml;
+        // 总额（延时费不计入）
+        total = tuitionRefund + accRefund + busRefund + mealRefund + sunRefund - miscDeduct;
+        if (total < 0) total = 0;
+        document.getElementById('totalAmountBox').innerHTML = '应退合计：<span id="totalAmount" style="color:green;">¥ ' + total.toFixed(2) + '</span>';
     }
-</script>
 
+    // ==================== 3. 请假（退费）====================
+    else if (sc === 'leave') {
+        var leaveDays = parseInt(document.getElementById('leaveDays').value) || 0;
+        detailsHtml += makeItem('学费/住宿费', '请假不退还');
+
+        var mealRefundLeave = leaveDays * rate;
+        detailsHtml += makeItem('日常餐费退费 (' + leaveDays + '天 × ' + rate + '元)', '<span style="color:green;">退 ¥ ' + mealRefundLeave.toFixed(2) + '</span>');
+        total += mealRefundLeave;
+
+        if (service === 'bus' && currentConfig.bus > 0) {
+            var busRefundLeave = (currentConfig.bus / currentConfig.days) * leaveDays;
+            detailsHtml += makeItem('校车费退费 (' + currentConfig.bus + ' ÷ ' + currentConfig.days + '天 × ' + leaveDays + '天)', '<span style="color:green;">退 ¥ ' + busRefundLeave.toFixed(2) + '</span>');
+            total += busRefundLeave;
+        }
+
+        // 初中请假时延时费不退、不计算、不显示
+
+        if (currentConfig.sunRate && sundayDays > 0) {
+            var sunRefundLeave = sundayDays * currentConfig.sunRate;
+            detailsHtml += makeItem('初三周日餐费退费 (请假' + sundayDays + '个周日×18元/天)', '<span style="color:green;">退 ¥ ' + sunRefundLeave.toFixed(2) + '</span>');
+            total += sunRefundLeave;
+        }
+
+        document.getElementById('totalAmountBox').innerHTML = '应退合计：<span id="totalAmount" style="color:green;">¥ ' + total.toFixed(2) + '</span>';
+    }
+
+    // ==================== 4. 试读代收费结算 ====================
+    else if (sc === 'trial_fail') {
+        var trialDays = parseInt(document.getElementById('trialDays').value) || 0;
+        detailsHtml += '<div class="warning-box">💡 政策提示：若试读未录取，不收取任何费用(全额为0)。此计算仅适用于【录取了但未立即入读(超3个工作日)】的试读期间代收费结算。</div>';
+        detailsHtml += makeItem('学费', '不收取 ¥ 0.00');
+        detailsHtml += makeItem('住宿费', '不收取 ¥ 0.00');
+
+        var trialMeal = trialDays * 60;
+        detailsHtml += makeItem('试读餐费 (' + trialDays + '天 × 60元/天)', '收 ¥ ' + trialMeal.toFixed(2));
+        total += trialMeal;
+
+        if (service === 'bus') {
+            var trialBus = trialDays * 80;
+            detailsHtml += makeItem('试读校车费 (' + trialDays + '天 × 80元/天)', '收 ¥ ' + trialBus.toFixed(2));
+            total += trialBus;
+        }
+
+        if (currentConfig.sunRate && sundayDays > 0) {
+            var sunChargeTrial = sundayDays * currentConfig.sunRate;
+            detailsHtml += makeItem('初三周日餐费 (' + sundayDays + '天×18元)', '收 ¥ ' + sunChargeTrial.toFixed(2));
+            total += sunChargeTrial;
+        }
+
+        document.getElementById('totalAmountBox').innerHTML = '应收代收费合计：<span id="totalAmount">¥ ' + total.toFixed(2) + '</span>';
+    }
+
+    // ==================== 5. 住宿转校车（小学）====================
+    else if (sc === 'board_to_bus') {
+        var enrollD_btb = document.getElementById('enrollDate').value || startStr;
+        var overOne_btb = isOverOneMonth(enrollD_btb, eventStr);
+
+        if (overOne_btb) {
+            detailsHtml += makeItem('差价退还', '¥ 0.00');
+            detailsHtml += '<div class="tip" style="color:#e74c3c; font-weight:bold;">注：自入学日(' + enrollD_btb + ')起已超过一个月，按规定住宿转校车不予退还差价。</div>';
+            total = 0;
+        } else {
+            var accMonthRate_btb = currentConfig.acc / 5;
+            var busMonthRate_btb = currentConfig.bus / 5;
+            var diffMonthRate_btb = accMonthRate_btb - busMonthRate_btb;
+
+            var dayBefore_btb = new Date(parseDate(eventStr));
+            dayBefore_btb.setDate(dayBefore_btb.getDate() - 1);
+            var consumedMonths_btb = 0;
+            if (dayBefore_btb >= parseDate(startStr)) {
+                consumedMonths_btb = calcNaturalMonths(startStr, formatDate(dayBefore_btb), startStr, 'charge');
+            }
+            var remainMonths_btb = 5 - consumedMonths_btb;
+            if (remainMonths_btb < 0) remainMonths_btb = 0;
+
+            var refundAmount_btb = remainMonths_btb * diffMonthRate_btb;
+            detailsHtml += makeItem('差价退还 (' + remainMonths_btb + '个月 × ' + diffMonthRate_btb + '元/月)', '<span style="color:green; font-weight:bold;">退 ¥ ' + refundAmount_btb.toFixed(2) + '</span>', '学期按5个自然月核算(以开学' + startStr + '为锚点)。已消费' + consumedMonths_btb + '个月，剩余' + remainMonths_btb + '个月。住宿月费' + accMonthRate_btb + '元-校车月费' + busMonthRate_btb + '元=差价' + diffMonthRate_btb + '元/月');
+            total = refundAmount_btb;
+        }
+        document.getElementById('totalAmountBox').innerHTML = '应退合计：<span id="totalAmount" style="color:green;">¥ ' + total.toFixed(2) + '</span>';
+    }
+
+    // ==================== 6. 校车转住宿（小学）====================
+    else if (sc === 'bus_to_board') {
+        var busStartD = document.getElementById('busDate').value || startStr;
+        var accMonthRate_bto = currentConfig.acc / 5;
+        var busMonthRate_bto = currentConfig.bus / 5;
+        var diffMonthRate_bto = accMonthRate_bto - busMonthRate_bto;
+
+        var dayBefore_bto = new Date(parseDate(eventStr));
+        dayBefore_bto.setDate(dayBefore_bto.getDate() - 1);
+        var consumedMonths_bto = 0;
+        if (dayBefore_bto >= parseDate(busStartD)) {
+            consumedMonths_bto = calcNaturalMonths(busStartD, formatDate(dayBefore_bto), startStr, 'deduct');
+        }
+        var remainMonths_bto = 5 - consumedMonths_bto;
+        if (remainMonths_bto < 0) remainMonths_bto = 0;
+
+        var chargeAmount_bto = remainMonths_bto * diffMonthRate_bto;
+        detailsHtml += makeItem('差价补缴 (' + remainMonths_bto + '个月 × ' + diffMonthRate_bto + '元/月)', '收 ¥ ' + chargeAmount_bto.toFixed(2), '学期按5个自然月核算(以开学' + startStr + '为锚点)。从乘坐校车日(' + busStartD + ')起已消费' + consumedMonths_bto + '个月，剩余' + remainMonths_bto + '个月需补差价。住宿月费' + accMonthRate_bto + '元-校车月费' + busMonthRate_bto + '元=差价' + diffMonthRate_bto + '元/月。不足半月按半月计算。');
+        total = chargeAmount_bto;
+        document.getElementById('totalAmountBox').innerHTML = '应收合计：<span id="totalAmount">¥ ' + total.toFixed(2) + '</span>';
+    }
+
+    document.getElementById('detailsBox').innerHTML = detailsHtml;
+}
+</script>
 </body>
 </html>
-
 
