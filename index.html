@@ -220,7 +220,6 @@
         return count;
     }
 
-    // 【重构：以开学日期为锚点的周期自然月计算】
     function getNaturalMonths(startStr, endStr, anchorStr) {
         let start = new Date(startStr);
         let end = new Date(endStr);
@@ -230,7 +229,7 @@
         let totalMonths = 0;
         let currentCycleStart = new Date(anchor);
 
-        for (let i = 0; i < 24; i++) { // 限制循环次数防死循环
+        for (let i = 0; i < 24; i++) { 
             let nextCycleStart = new Date(anchor.getFullYear(), anchor.getMonth() + i + 1, anchor.getDate());
             let currentCycleEnd = new Date(nextCycleStart);
             currentCycleEnd.setDate(currentCycleEnd.getDate() - 1);
@@ -488,33 +487,54 @@
         let cap = currentConfig.mealCap;
         let rate = currentConfig.mealRate;
 
+        // 【核心修改1：精准算出该生最初交了多少餐费】
+        let originalMealCharge = 0;
+        let enrollD_val = document.getElementById('enrollDate').value || currentConfig.start;
+        let enrollToTermEndDays = getWorkingDays(enrollD_val, currentConfig.end);
+        let missedBeforeEnrollDays = currentConfig.days - enrollToTermEndDays;
+        if (missedBeforeEnrollDays < 0) missedBeforeEnrollDays = 0;
+
+        if (isPrimary) {
+            let chargeByAttended = enrollToTermEndDays * rate;
+            let chargeByAbsent = cap - (missedBeforeEnrollDays * rate);
+            originalMealCharge = Math.max(chargeByAttended, chargeByAbsent);
+            if (originalMealCharge > cap) originalMealCharge = cap;
+            if (originalMealCharge < 0) originalMealCharge = 0;
+        } else {
+            originalMealCharge = enrollToTermEndDays * rate;
+            if (originalMealCharge > cap) originalMealCharge = cap;
+        }
+
         let mealCharge = 0;
         let mealNote = "";
         
-        if (isPrimary) {
-            let chargeByAttended = attended * rate;
-            let chargeByAbsent = cap - (absent * rate);
-            mealCharge = Math.max(chargeByAttended, chargeByAbsent);
-            if (mealCharge > cap) mealCharge = cap; 
-            if (mealCharge < 0) mealCharge = 0;
+        if (scenario === 'enroll') {
+            if (isPrimary) {
+                let chargeByAttended = attended * rate;
+                let chargeByAbsent = cap - (absent * rate);
+                mealCharge = Math.max(chargeByAttended, chargeByAbsent);
+                if (mealCharge > cap) mealCharge = cap; 
+                if (mealCharge < 0) mealCharge = 0;
 
-            if (mealCharge === cap && chargeByAttended >= cap) {
-                mealNote = `来的天数(${attended})×${rate} ≥ ${cap}，收取顶额 ${cap}元`;
-            } else if (chargeByAbsent > chargeByAttended) {
-                mealNote = `${cap} - 没来天数(${absent})×${rate} > 来的天数×${rate}，收费取高者：${mealCharge.toFixed(2)}元`;
+                if (mealCharge === cap && chargeByAttended >= cap) {
+                    mealNote = `来的天数(${attended})×${rate} ≥ ${cap}，收取顶额 ${cap}元`;
+                } else if (chargeByAbsent > chargeByAttended) {
+                    mealNote = `${cap} - 没来天数(${absent})×${rate} > 来的天数×${rate}，收费取高者：${mealCharge.toFixed(2)}元`;
+                } else {
+                    mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
+                }
             } else {
+                mealCharge = attended * rate;
+                if (mealCharge > cap) mealCharge = cap; 
                 mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
             }
         } else {
-            mealCharge = attended * rate;
-            if (mealCharge > cap) mealCharge = cap; 
-            mealNote = `按实际来的天数计算：${attended}天 × ${rate}元 = ${mealCharge.toFixed(2)}元`;
+            mealCharge = originalMealCharge; // 退费时，餐费基数是他当初交的钱
         }
 
         let delayCharge = 0;
         let delayNote = "";
         if (currentConfig.delay > 0) {
-            // 传入开学日期作为锚点
             let tMonths = getNaturalMonths(currentConfig.start, currentConfig.end, currentConfig.start);
             if (tMonths <= 0) tMonths = 5; 
             let monthlyDelayRate = currentConfig.delay / tMonths;
@@ -613,10 +633,21 @@
                 detailsHtml += `<div class="detail-item"><span>学费/住宿费退费 (入读超1个月):</span><span>不予清退</span></div>`;
             }
 
+            // 【核心修改2：校车费退费按乘坐天数是否超过半学期来算】
             if (service === 'bus') {
-                busRefund = monthsStayed <= 2.5 ? 2000 : 0;
-                let busText = monthsStayed <= 2.5 ? "未超半学期退2000" : "超过半学期不退";
-                detailsHtml += `<div class="detail-item"><span>校车退费 (${busText}):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
+                let halfDays = currentConfig.days / 2;
+                let busChargePaid = currentConfig.bus * ratio; 
+                
+                if (attended <= halfDays) {
+                    busRefund = 2000;
+                    if (busRefund > busChargePaid) busRefund = busChargePaid; // 防止交的钱还不到2000
+                    let busText = `乘坐天数(${attended}天)未超半学期(${halfDays}天)退2000`;
+                    detailsHtml += `<div class="detail-item"><span>校车退费 (${busText}):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
+                } else {
+                    busRefund = 0;
+                    let busText = `乘坐天数(${attended}天)超过半学期(${halfDays}天)不退`;
+                    detailsHtml += `<div class="detail-item"><span>校车退费 (${busText}):</span><span style="color:green;">退 ¥ ${busRefund.toFixed(2)}</span></div>`;
+                }
             }
 
             if (currentConfig.delay > 0) {
@@ -647,20 +678,23 @@
                 </div>`;
             }
 
-            let mealRefund = cap - mealCharge;
-            if (mealRefund < 0) mealRefund = 0;
-            
+            // 【核心修改3：餐费退费，取“没来天数*47”与“实交餐费 - 来的天数*47”的低者】
+            let mealRefund = 0;
             let refundNote = "";
             if (isPrimary) {
-                if (mealRefund === 0 && (cap - attended * rate) < 0) {
-                    refundNote = `已消费超过${cap}元额度，退 0.00元`;
-                } else if (absent * rate < cap - attended * rate) {
-                    refundNote = `没来天数(${absent})×${rate} < ${cap} - 来的天数×${rate}，退费取低者：${mealRefund.toFixed(2)}元`;
+                let refundByAbsent = absent * rate; 
+                let refundByAttended = mealCharge - (attended * rate); 
+                mealRefund = Math.min(refundByAbsent, refundByAttended);
+                if (mealRefund < 0) mealRefund = 0;
+
+                if (refundByAbsent < refundByAttended) {
+                    refundNote = `没来天数(${absent})×${rate} < 实交(${mealCharge.toFixed(2)}) - 来的天数(${attended})×${rate}，退费取低者：${mealRefund.toFixed(2)}元`;
                 } else {
-                    refundNote = `总额${cap} - 已消费(${attended}天×${rate}) = ${mealRefund.toFixed(2)}元`;
+                    refundNote = `实交(${mealCharge.toFixed(2)}) - 来的天数(${attended})×${rate} ≤ 没来天数(${absent})×${rate}，退费取低者：${mealRefund.toFixed(2)}元`;
                 }
             } else {
-                refundNote = `总额${cap} - 已消费(${attended}天×${rate}) = ${mealRefund.toFixed(2)}元`;
+                mealRefund = absent * rate;
+                refundNote = `没来天数(${absent}天) × ${rate}元 = ${mealRefund.toFixed(2)}元`;
             }
             
             detailsHtml += `<div class="detail-item"><span>日常餐费退费:</span><span style="color:green;">退 ¥ ${mealRefund.toFixed(2)}</span><span class="tip">${refundNote}</span></div>`;
@@ -802,7 +836,5 @@
 
 </body>
 </html>
-
-
 
 
